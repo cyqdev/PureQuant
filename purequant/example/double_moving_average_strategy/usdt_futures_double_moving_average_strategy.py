@@ -165,4 +165,4 @@ if __name__ == "__main__":
     else:   # 实盘模式
         while True:     # 循环运行begin_trade函数
             strategy.begin_trade()
-            time.sleep(3)   # 休眠几秒 ，防止请求频率超限
+            sleep(3)   # 休眠几秒 ，防止请求频率超限

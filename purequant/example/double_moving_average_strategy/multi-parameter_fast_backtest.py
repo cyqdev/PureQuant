@@ -205,3 +205,4 @@ if __name__ == "__main__":
                             long_stop=0.95, short_stop=1.05, start_asset=1000)
         while True:     # 循环运行begin_trade函数
             strategy.begin_trade()
+            sleep(3)
