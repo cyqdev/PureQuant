@@ -8,6 +8,8 @@ import time
 import decimal
 import datetime
 
+def sleep(seconds):
+    time.sleep(seconds)
 
 def get_cur_timestamp():
     """ 获取当前时间戳（秒）
