@@ -48,7 +48,7 @@ class Strategy:
             self.counter = 0  # 计数器
             self.bollinger_lengths = bollinger_lengths  # 布林通道参数
             self.filter_length = filter_length  # 过滤器参数
-            self.out_day = self.bollinger_lengths + 1  # 自适应出场ma的初始值,设为51，因为策略启动时k线更新函数会起作用，其值会减去1
+            self.out_day = 0   # 自适应出场ma的初始值为0,开仓后赋值为布林通道参数的值
         except:
             logger.warning()
 
@@ -86,6 +86,7 @@ class Strategy:
                                                          self.total_asset)  # 将信息保存至数据库
                     self.counter += 1   # 此策略是在盘中开仓，而在回测时，每根bar只会运行一次，每根bar上的价格不分时间先后，故此处开仓后计数器加1，也就是当根k线不平仓
                                         # 因为实盘时每个ticker进来策略就会运行一次。注意回测和实盘策略运行机制的不同。
+                    self.out_day = self.bollinger_lengths  # 开仓后赋值
             # 开空
             if self.indicators.CurrentBar(kline=kline) >= self.bollinger_lengths and filter < 0 and self.market.low(-1, kline=kline) < lowerband and self.counter < 1:
                 if self.position.amount() == 0:
@@ -97,6 +98,7 @@ class Strategy:
                                                          price, amount, amount * price * self.contract_value, price,
                                                          "short", amount, 0, self.total_profit, self.total_asset)
                     self.counter += 1
+                    self.out_day = self.bollinger_lengths  # 开仓后赋值
             # 如果当前持多，且当根k线最低价小于等于中轨值，触发保护性止损，就平多止损
                 # 因为回测是一根k线上运行整个策略一次，所以要实现当根k线开仓后当根k线不平仓，需要将self.counter < 1的条件加在平仓的地方
             if self.position.direction() == "long" and self.market.low(-1, kline=kline) < middleband and self.counter < 1:
