@@ -37,3 +37,6 @@ class SendOrderError(CunstomException):
 
 class GetOrderError(CunstomException):
     defaul_msg = "查询订单失败！"
+
+class GetPositionError(CunstomException):
+    defaul_msg = "查询持仓失败！"
