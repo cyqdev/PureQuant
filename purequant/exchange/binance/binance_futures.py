@@ -228,3 +228,10 @@ def get_contract_value(symbol):
         if item["symbol"] == symbol:
             result = int(item["contractSize"])
     return result
+
+def set_leverage(symbol, leverage):
+    """设置开仓杠杆倍数"""
+    params = {"symbol": symbol,
+              "leverage": leverage}
+    data = signedRequest("POST", "/dapi/v1/leverage", params)
+    return data

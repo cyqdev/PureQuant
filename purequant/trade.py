@@ -25,19 +25,22 @@ from purequant.storage import storage
 
 class OKEXFUTURES:
     """okex交割合约操作  https://www.okex.com/docs/zh/#futures-README"""
-    def __init__(self, access_key, secret_key, passphrase, instrument_id):
+    def __init__(self, access_key, secret_key, passphrase, instrument_id, leverage=None):
         """
         okex交割合约
         :param access_key:
         :param secret_key:
         :param passphrase:
         :param instrument_id: 例如："BTC-USD-201225", "BTC-USD-201225"
+        :param leverage:杠杆倍数，如不填则默认设置为20倍杠杆
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
         self.__passphrase = passphrase
         self.__instrument_id = instrument_id
         self.__okex_futures = okexfutures.FutureAPI(self.__access_key, self.__secret_key, self.__passphrase)
+        self.__leverage = leverage or 20
+        self.__okex_futures.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id)
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":   # 实盘模式
@@ -440,11 +443,9 @@ class OKEXFUTURES:
 
     def get_contract_value(self):
         receipt = self.__okex_futures.get_products()
-        t = 0
         result = {}
         for item in receipt:
             result[item['instrument_id']] = item['contract_val']
-            t += 1
         return result
 
     def get_depth(self, type=None, size=None):
@@ -454,7 +455,7 @@ class OKEXFUTURES:
         :param size: 返回深度档位数量，最多返回200，默认10档
         :return:
         """
-        size = 10 or size
+        size = size or 10
         response = self.__okex_futures.get_depth(self.__instrument_id, size=size)
         asks = response["asks"]
         bids = response["bids"]
@@ -497,7 +498,7 @@ class OKEXSPOT:
         """
         if config.backtest != "enabled":    # 实盘模式
             order_type = order_type or 0
-            type=type or "limit"
+            type = type or "limit"
             result = self.__okex_spot.take_order(instrument_id=self.__instrument_id, side="buy", type=type, size=size, price=price, order_type=order_type, notional=notional)
             order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
@@ -741,7 +742,7 @@ class OKEXSPOT:
         :param size: 返回深度档位数量，最多返回200，默认10档
         :return:
         """
-        size = 10 or size
+        size = size or 10
         response = self.__okex_spot.get_depth(self.__instrument_id, size=size)
         asks = response['asks']
         bids = response['bids']
@@ -754,19 +755,22 @@ class OKEXSPOT:
 
 class OKEXSWAP:
     """okex永续合约操作 https://www.okex.com/docs/zh/#swap-README"""
-    def __init__(self, access_key, secret_key, passphrase, instrument_id):
+    def __init__(self, access_key, secret_key, passphrase, instrument_id, leverage=None):
         """
         okex永续合约
         :param access_key:
         :param secret_key:
         :param passphrase:
         :param instrument_id: 例如："BTC-USDT-SWAP", "BTC-USD-SWAP"
+        :param leverage:杠杆倍数，如不填则默认设置20倍杠杆
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
         self.__passphrase = passphrase
         self.__instrument_id = instrument_id
         self.__okex_swap = okexswap.SwapAPI(self.__access_key, self.__secret_key, self.__passphrase)
+        self.__leverage = leverage or 20
+        self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id)
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
@@ -1159,11 +1163,9 @@ class OKEXSWAP:
 
     def get_contract_value(self):
         receipt = self.__okex_swap.get_instruments()
-        t = 0
         result = {}
         for item in receipt:
             result[item['instrument_id']]=item['contract_val']
-            t += 1
         return result
 
     def get_ticker(self):
@@ -1177,7 +1179,7 @@ class OKEXSWAP:
         :param size: 返回深度档位数量，最多返回200，默认10档
         :return:
         """
-        size = 10 or size
+        size = size or 10
         response = self.__okex_swap.get_depth(self.__instrument_id, size=size)
         asks = response["asks"]
         bids = response["bids"]
@@ -1190,11 +1192,13 @@ class OKEXSWAP:
 
 class HUOBIFUTURES:
     """火币合约 https://huobiapi.github.io/docs/dm/v1/cn/#5ea2e0cde2"""
-    def __init__(self, access_key, secret_key, instrument_id):
+    def __init__(self, access_key, secret_key, instrument_id, contract_type=None, leverage=None):
         """
         :param access_key:
         :param secret_key:
         :param instrument_id: 'BTC-USD-201225'
+        :param contract_type:如不传入此参数，则默认只能交易季度或次季合约
+        :param leverage:杠杆倍速，如不填则默认设置为20倍杠杆
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
@@ -1202,19 +1206,22 @@ class HUOBIFUTURES:
         self.__huobi_futures = huobifutures.HuobiFutures(self.__access_key, self.__secret_key)
         self.__symbol = self.__instrument_id.split("-")[0]
         self.__contract_code = self.__instrument_id.split("-")[0] + self.__instrument_id.split("-")[2]
+        self.__leverage = leverage or 20
 
-        if self.__instrument_id.split("-")[2][2:4] == '03' or self.__instrument_id.split("-")[2][2:4] == '09':
-            self.__contract_type = "quarter"
-        elif self.__instrument_id.split("-")[2][2:4] == '06' or self.__instrument_id.split("-")[2][2:4] == '12':
-            self.__contract_type = "next_quarter"
+        if contract_type is not None:
+            self.__contract_type = contract_type
         else:
-            self.__contract_type = None
-            raise SymbolError("交易所: Huobi 交割合约ID错误，只支持当季与次季合约！")
+            if self.__instrument_id.split("-")[2][2:4] == '03' or self.__instrument_id.split("-")[2][2:4] == '09':
+                self.__contract_type = "quarter"
+            elif self.__instrument_id.split("-")[2][2:4] == '06' or self.__instrument_id.split("-")[2][2:4] == '12':
+                self.__contract_type = "next_quarter"
+            else:
+                self.__contract_type = None
+                raise SymbolError("交易所: Huobi 交割合约ID错误，只支持当季与次季合约！")
 
-    def buy(self, price, size, order_type=None, lever_rate=None):
+    def buy(self, price, size, order_type=None):
         """
-        火币交割合约下单买入开多，只支持季度和次季合约，杠杆倍数如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-201225'
+        火币交割合约下单买入开多
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -1225,7 +1232,6 @@ class HUOBIFUTURES:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -1241,7 +1247,7 @@ class HUOBIFUTURES:
                 return "【交易提醒】交易所：Huobi 交割合约订单报价类型错误！"
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='buy',
-                            offset='open', lever_rate=20, order_price_type=order_price_type)
+                            offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id = result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -1308,10 +1314,9 @@ class HUOBIFUTURES:
             return "回测模拟下单成功！"
 
 
-    def sell(self, price, size, order_type=None, lever_rate=None):
+    def sell(self, price, size, order_type=None):
         """
-        火币交割合约下单卖出平多，只支持季度和次季合约，杠杆倍数如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-201225'
+        火币交割合约下单卖出平多
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -1322,7 +1327,6 @@ class HUOBIFUTURES:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -1338,7 +1342,7 @@ class HUOBIFUTURES:
                 return "【交易提醒】交易所: Huobi 交割合约订单报价类型错误！"
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='sell',
-                            offset='close', lever_rate=20, order_price_type=order_price_type)
+                            offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -1404,10 +1408,9 @@ class HUOBIFUTURES:
         else:
             return "回测模拟下单成功！"
 
-    def buytocover(self, price, size, order_type=None, lever_rate=None):
+    def buytocover(self, price, size, order_type=None):
         """
-        火币交割合约下单买入平空，只支持季度和次季合约，杠杆倍数如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-201225'
+        火币交割合约下单买入平空
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -1418,7 +1421,6 @@ class HUOBIFUTURES:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -1434,7 +1436,7 @@ class HUOBIFUTURES:
                 return "【交易提醒】交易所: Huobi交割合约订单报价类型错误！"
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='buy',
-                            offset='close', lever_rate=20, order_price_type=order_price_type)
+                            offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -1500,10 +1502,9 @@ class HUOBIFUTURES:
         else:
             return "回测模拟下单成功！"
 
-    def sellshort(self, price, size, order_type=None, lever_rate=None):
+    def sellshort(self, price, size, order_type=None):
         """
-        火币交割合约下单卖出开空，只支持季度和次季合约，杠杆倍数如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-201225'
+        火币交割合约下单卖出开空
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -1514,7 +1515,6 @@ class HUOBIFUTURES:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -1530,7 +1530,7 @@ class HUOBIFUTURES:
                 return "【交易提醒】交易所: Huobi 订单报价类型错误！"
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='sell',
-                            offset='open', lever_rate=20, order_price_type=order_price_type)
+                            offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -1599,7 +1599,6 @@ class HUOBIFUTURES:
     def BUY(self, cover_short_price, cover_short_size, open_long_price, open_long_size, order_type=None):
         """火币交割合约平空开多"""
         if config.backtest != "enabled":
-            order_type = order_type or 0
             receipt1 = self.buytocover(cover_short_price, cover_short_size, order_type)
             if "完全成交" in str(receipt1):
                 receipt2 = self.buy(open_long_price, open_long_size, order_type)
@@ -1612,7 +1611,6 @@ class HUOBIFUTURES:
     def SELL(self, cover_long_price, cover_long_size, open_short_price, open_short_size, order_type=None):
         """火币交割合约平多开空"""
         if config.backtest != "enabled":
-            order_type = order_type or 0
             receipt1 = self.sell(cover_long_price, cover_long_size, order_type)
             if "完全成交" in str(receipt1):
                 receipt2 = self.sellshort(open_short_price, open_short_size, order_type)
@@ -1693,14 +1691,10 @@ class HUOBIFUTURES:
         else:
             raise KlineError("k线周期错误，k线周期只能是【1m, 5m, 15m, 30m, 1h, 4h, 1d】!")
         records = self.__huobi_futures.get_contract_kline(symbol=self.__contract_code, period=period)['data']
-        length = len(records)
-        j = 1
         list = []
-        while j < length:
-            for item in records:
-                item = [ts_to_utc_str(item['id']), item['open'], item['high'], item['low'], item['close'], item['vol'], round(item['amount'], 2)]
-                list.append(item)
-                j+=1
+        for item in records:
+            item = [ts_to_utc_str(item['id']), item['open'], item['high'], item['low'], item['close'], item['vol'], round(item['amount'], 2)]
+            list.append(item)
         list.reverse()
         return list
 
@@ -1751,21 +1745,22 @@ class HUOBIFUTURES:
 class HUOBISWAP:
     """火币永续合约 https://docs.huobigroup.com/docs/coin_margined_swap/v1/cn/#5ea2e0cde2"""
 
-    def __init__(self, access_key, secret_key, instrument_id):
+    def __init__(self, access_key, secret_key, instrument_id, leverage=None):
         """
         :param access_key:
         :param secret_key:
         :param instrument_id: 'BTC-USD-SWAP'
+        :param leverage:杠杆倍数，如不填则默认设置为20倍
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
         self.__instrument_id = "{}-{}".format(instrument_id.split("-")[0], instrument_id.split("-")[1])
         self.__huobi_swap = huobiswap.HuobiSwap(self.__access_key, self.__secret_key)
+        self.__leverage = leverage or 20
 
-    def buy(self, price, size, order_type=None, lever_rate=None):
+    def buy(self, price, size, order_type=None):
         """
-        火币永续合约下单买入开多，如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-USD'
+        火币永续合约下单买入开多
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -1776,7 +1771,6 @@ class HUOBISWAP:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -1792,7 +1786,7 @@ class HUOBISWAP:
                 return "【交易提醒】交易所: Huobi 订单报价类型错误！"
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='buy',
-                            offset='open', lever_rate=lever_rate, order_price_type=order_price_type)
+                            offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -1860,8 +1854,7 @@ class HUOBISWAP:
 
     def sell(self, price, size, order_type=None, lever_rate=None):
         """
-        火币永续合约下单卖出平多，如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-USD'
+        火币永续合约下单卖出平多
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -1872,7 +1865,6 @@ class HUOBISWAP:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -1888,7 +1880,7 @@ class HUOBISWAP:
                 return "【交易提醒】交易所: Huobi 订单报价类型错误！"
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='sell',
-                            offset='close', lever_rate=lever_rate, order_price_type=order_price_type)
+                            offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -1956,8 +1948,7 @@ class HUOBISWAP:
 
     def buytocover(self, price, size, order_type=None, lever_rate=None):
         """
-        火币永续合约下单买入平空,如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-USD'
+        火币永续合约下单买入平空
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -1968,7 +1959,6 @@ class HUOBISWAP:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -1984,7 +1974,7 @@ class HUOBISWAP:
                 return "【交易提醒】交易所: Huobi 订单报价类型错误！"
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='buy',
-                            offset='close', lever_rate=lever_rate, order_price_type=order_price_type)
+                            offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -2052,8 +2042,7 @@ class HUOBISWAP:
 
     def sellshort(self, price, size, order_type=None, lever_rate=None):
         """
-        火币永续合约下单卖出开空，如不填杠杆倍数则默认20倍杠杆
-        :param self.__instrument_id: 合约ID 例如：'BTC-USD'
+        火币永续合约下单卖出开空
         :param price:   下单价格
         :param size:    下单数量
         :param order_type:  0：限价单
@@ -2064,7 +2053,6 @@ class HUOBISWAP:
         :return:
         """
         if config.backtest != "enabled":
-            lever_rate=20 or lever_rate
             order_type = order_type or 0
             if order_type == 0:
                 order_price_type = 'limit'
@@ -2080,7 +2068,7 @@ class HUOBISWAP:
                 return "【交易提醒】交易所: Huobi 订单报价类型错误！"
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='sell',
-                            offset='open', lever_rate=lever_rate, order_price_type=order_price_type)
+                            offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -2243,14 +2231,10 @@ class HUOBISWAP:
         else:
             raise KlineError("交易所: Huobi k线周期错误，k线周期只能是【1m, 5m, 15m, 30m, 1h, 4h, 1d】!")
         records = self.__huobi_swap.get_contract_kline(self.__instrument_id, period=period)['data']
-        length = len(records)
-        j = 1
         list = []
-        while j < length:
-            for item in records:
-                item = [ts_to_utc_str(item['id']), item['open'], item['high'], item['low'], item['close'], item['vol'], round(item['amount'], 2)]
-                list.append(item)
-                j+=1
+        for item in records:
+            item = [ts_to_utc_str(item['id']), item['open'], item['high'], item['low'], item['close'], item['vol'], round(item['amount'], 2)]
+            list.append(item)
         list.reverse()
         return list
 
@@ -2509,7 +2493,7 @@ class HUOBISPOT:
             elif  "sell" in result['data']['type']:
                 action = "卖出平多"
         except Exception as e:
-            raise GetOrderError
+            raise GetOrderError(e)
 
         if result["data"]['state'] == 'filled':
             dict = {"交易所": "Huobi现货", "合约ID": instrument_id, "方向": action, "订单状态": "完全成交",
@@ -2565,14 +2549,11 @@ class HUOBISPOT:
             raise KlineError("交易所: Huobi k线周期错误，k线周期只能是【1m, 5m, 15m, 30m, 1h, 4h, 1d】!")
         records = self.__huobi_spot.get_kline(self.__instrument_id, period=period)['data']
         length = len(records)
-        j = 1
         list = []
-        while j < length:
-            for item in records:
-                item = [ts_to_utc_str(item['id']), item['open'], item['high'], item['low'], item['close'], item['vol'],
-                        round(item['amount'], 2)]
-                list.append(item)
-                j += 1
+        for item in records:
+            item = [ts_to_utc_str(item['id']), item['open'], item['high'], item['low'], item['close'], item['vol'],
+                    round(item['amount'], 2)]
+            list.append(item)
         return list
 
     def get_position(self):
@@ -2596,7 +2577,7 @@ class HUOBISPOT:
         :param size: 返回深度档位数量，取值范围：5，10，20，默认10档
         :return:
         """
-        size = 10 or size
+        size = size or 10
         response = self.__huobi_spot.get_depth(self.__instrument_id, depth=size, type="step0")
         asks = response["tick"]["asks"]
         bids = response["tick"]["bids"]
@@ -2912,12 +2893,13 @@ class BINANCESPOT:
 class BINANCEFUTURES:
     """币安币本位合约rest api"""
 
-    def __init__(self, access_key, secret_key, instrument_id):
+    def __init__(self, access_key, secret_key, instrument_id, leverage=None):
         """
         初始化
         :param access_key: api_key
         :param secret_key: secret_key
         :param symbol: 合约ID，例如：交割合约："ADA-USD-200925"  永续合约："ADA-USD-SWAP"
+        :param leverage:开仓杠杆倍数，如不填则默认设置为20倍
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
@@ -2927,6 +2909,9 @@ class BINANCEFUTURES:
             self.__instrument_id = "{}{}_{}".format(instrument_id.split("-")[0], instrument_id.split("-")[1], instrument_id.split("-")[2])
         self.__binance_futures = binance_futures
         self.__binance_futures.set(self.__access_key, self.__secret_key)   # 设置api
+        self.__leverage = leverage or 20
+        self.__binance_futures.set_leverage(self.__instrument_id, self.__leverage)
+
 
     def buy(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
@@ -3249,7 +3234,6 @@ class BINANCEFUTURES:
 
     def BUY(self, cover_short_price, cover_short_size, open_long_price, open_long_size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
-            order_type = order_type or 0
             result1 = self.buytocover(cover_short_price, cover_short_size, order_type)
             if "完全成交" in str(result1):
                 result2 = self.buy(open_long_price, open_long_size, order_type)
@@ -3261,7 +3245,6 @@ class BINANCEFUTURES:
 
     def SELL(self, cover_long_price, cover_long_size, open_short_price, open_short_size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
-            order_type = order_type or 0
             result1 = self.sell(cover_long_price, cover_long_size, order_type)
             if "完全成交" in str(result1):
                 result2 = self.sellshort(open_short_price, open_short_size, order_type)
@@ -3393,18 +3376,21 @@ class BINANCEFUTURES:
 class BINANCESWAP:
     """币安USDT合约rest api"""
 
-    def __init__(self, access_key, secret_key, instrument_id):
+    def __init__(self, access_key, secret_key, instrument_id, leverage=None):
         """
         初始化
         :param access_key: api_key
         :param secret_key: secret_key
         :param symbol: 合约ID,例如'BTC-USDT-SWAP'
+        :param leverage:杠杆倍数，如不填则默认设置为20倍杠杆
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
         self.__instrument_id = "{}{}".format(instrument_id.split("-")[0], instrument_id.split("-")[1])
         self.__binance_swap = binance_swap
         self.__binance_swap.set(self.__access_key, self.__secret_key)   # 设置api
+        self.__leverage = leverage or 20
+        self.__binance_swap.set_leverage(self.__instrument_id, self.__leverage)
 
     def buy(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
@@ -3727,7 +3713,6 @@ class BINANCESWAP:
 
     def BUY(self, cover_short_price, cover_short_size, open_long_price, open_long_size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
-            order_type = order_type or 0
             result1 = self.buytocover(cover_short_price, cover_short_size, order_type)
             if "完全成交" in str(result1):
                 result2 = self.buy(open_long_price, open_long_size, order_type)
@@ -3739,7 +3724,6 @@ class BINANCESWAP:
 
     def SELL(self, cover_long_price, cover_long_size, open_short_price, open_short_size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
-            order_type = order_type or 0
             result1 = self.sell(cover_long_price, cover_long_size, order_type)
             if "完全成交" in str(result1):
                 result2 = self.sellshort(open_short_price, open_short_size, order_type)
@@ -3870,12 +3854,22 @@ class BINANCESWAP:
 
 class BITMEX:
 
-    def __init__(self, access_key, secret_key, instrument_id, testing=None):
+    def __init__(self, access_key, secret_key, instrument_id, leverage=None, testing=None):
+        """
+        BITMEX rest api
+        :param access_key: api key
+        :param secret_key: secret key
+        :param instrument_id: 合约id，例如："XBTUSD"
+        :param testing:是否是测试账户，默认为False
+        :param leverage:开仓杠杆倍数，如不填则默认设置为20倍
+        """
         self.__access_key = access_key
         self.__secret_key = secret_key
         self.__instrument_id = instrument_id
         self.__testing = False or testing
         self.__bitmex = Bitmex(self.__access_key, self.__secret_key, testing=self.__testing)
+        self.__leverage = leverage or 20
+        self.__bitmex.set_leverage(self.__instrument_id, leverage=self.__leverage)
 
     def get_depth(self, type=None, depth=None):
         """
@@ -3884,7 +3878,7 @@ class BITMEX:
         :param depth:返回深度档位数量，默认10档
         :return:
         """
-        depth = 10 or depth
+        depth = depth or 10
         response = self.__bitmex.get_orderbook(self.__instrument_id, depth=depth)
         asks_list = []   # 卖盘
         bids_list = []   # 买盘
@@ -3931,7 +3925,7 @@ class BITMEX:
         :param count: 返回的k线数量，默认为200条
         :return:
         """
-        count = 200 or count
+        count = count or 200
         records = []
         response = self.__bitmex.get_bucket_trades(binSize=time_frame, partial=False, symbol=self.__instrument_id,
                                                    columns="timestamp, open, high, low, close, volume", count=count,
@@ -3976,15 +3970,14 @@ class BITMEX:
         买入开多
         :param price: 价格
         :param amount: 数量
+        :param leverage：杠杆倍数，默认为20倍杠杆
         :param order_type: Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched, Pegged，默认是"Limit"
         :param timeInForce:Day, GoodTillCancel, ImmediateOrCancel, FillOrKill, 默认是"GoodTillCancel"
         :return:
         """
         if config.backtest != "enabled":  # 实盘模式
-            leverage = 20 or leverage
-            self.__bitmex.set_leverage(self.__instrument_id, leverage=leverage)
-            order_type = "Limit" or order_type
-            timeInForce = "GoodTillCancel" or timeInForce
+            order_type = order_type or "Limit"
+            timeInForce = timeInForce or "GoodTillCancel"
             result = self.__bitmex.create_order(symbol=self.__instrument_id, side="Buy", price=price, orderQty=size,
                                                 ordType=order_type, timeInForce=timeInForce)
             try:
@@ -4060,10 +4053,10 @@ class BITMEX:
         else:  # 回测模式
             return "回测模拟下单成功！"
 
-    def sell(self, price, size, order_type=None, timeInForce=None):
+    def sell(self, price, size, leverage=None, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
-            order_type = "Limit" or order_type
-            timeInForce = "GoodTillCancel" or timeInForce
+            order_type = order_type or "Limit"
+            timeInForce = timeInForce or "GoodTillCancel"
             result = self.__bitmex.create_order(symbol=self.__instrument_id, side="Sell", price=price, orderQty=size,
                                                 ordType=order_type, timeInForce=timeInForce)
             try:
@@ -4139,10 +4132,10 @@ class BITMEX:
         else:  # 回测模式
             return "回测模拟下单成功！"
 
-    def sellshort(self, price, size, order_type=None, timeInForce=None):
+    def sellshort(self, price, size, leverage=None, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
-            order_type = "Limit" or order_type
-            timeInForce = "GoodTillCancel" or timeInForce
+            order_type = order_type or "Limit"
+            timeInForce = timeInForce or "GoodTillCancel"
             result = self.__bitmex.create_order(symbol=self.__instrument_id, side="Sell", price=price, orderQty=size,
                                                 ordType=order_type, timeInForce=timeInForce)
             try:
@@ -4218,10 +4211,10 @@ class BITMEX:
         else:  # 回测模式
             return "回测模拟下单成功！"
 
-    def buytocover(self, price, size, order_type=None, timeInForce=None):
+    def buytocover(self, price, size, leverage=None, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
-            order_type = "Limit" or order_type
-            timeInForce = "GoodTillCancel" or timeInForce
+            order_type = order_type or "Limit"
+            timeInForce = timeInForce or "GoodTillCancel"
             result = self.__bitmex.create_order(symbol=self.__instrument_id, side="Buy", price=price, orderQty=size,
                                                 ordType=order_type, timeInForce=timeInForce)
             try:
