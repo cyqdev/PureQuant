@@ -31,7 +31,7 @@ class OKEXFUTURES:
         :param access_key:
         :param secret_key:
         :param passphrase:
-        :param instrument_id: 例如："BTC-USD-201225", "BTC-USD-201225"
+        :param instrument_id: 例如："BTC-USD-201225", "BTC-USDT-201225"
         :param leverage:杠杆倍数，如不填则默认设置为20倍杠杆
         """
         self.__access_key = access_key
@@ -40,7 +40,8 @@ class OKEXFUTURES:
         self.__instrument_id = instrument_id
         self.__okex_futures = okexfutures.FutureAPI(self.__access_key, self.__secret_key, self.__passphrase)
         self.__leverage = leverage or 20
-        self.__okex_futures.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id)
+        self.__okex_futures.set_leverage(leverage=self.__leverage,
+                                         underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1])
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":   # 实盘模式
@@ -770,7 +771,7 @@ class OKEXSWAP:
         self.__instrument_id = instrument_id
         self.__okex_swap = okexswap.SwapAPI(self.__access_key, self.__secret_key, self.__passphrase)
         self.__leverage = leverage or 20
-        self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id)
+        self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=3)
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
@@ -3965,12 +3966,11 @@ class BITMEX:
             return dict
 
 
-    def buy(self, price, size, leverage=None, order_type=None, timeInForce=None):
+    def buy(self, price, size, order_type=None, timeInForce=None):
         """
         买入开多
         :param price: 价格
         :param amount: 数量
-        :param leverage：杠杆倍数，默认为20倍杠杆
         :param order_type: Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched, Pegged，默认是"Limit"
         :param timeInForce:Day, GoodTillCancel, ImmediateOrCancel, FillOrKill, 默认是"GoodTillCancel"
         :return:
@@ -4053,7 +4053,7 @@ class BITMEX:
         else:  # 回测模式
             return "回测模拟下单成功！"
 
-    def sell(self, price, size, leverage=None, order_type=None, timeInForce=None):
+    def sell(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
             order_type = order_type or "Limit"
             timeInForce = timeInForce or "GoodTillCancel"
@@ -4132,7 +4132,7 @@ class BITMEX:
         else:  # 回测模式
             return "回测模拟下单成功！"
 
-    def sellshort(self, price, size, leverage=None, order_type=None, timeInForce=None):
+    def sellshort(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
             order_type = order_type or "Limit"
             timeInForce = timeInForce or "GoodTillCancel"
@@ -4211,7 +4211,7 @@ class BITMEX:
         else:  # 回测模式
             return "回测模拟下单成功！"
 
-    def buytocover(self, price, size, leverage=None, order_type=None, timeInForce=None):
+    def buytocover(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
             order_type = order_type or "Limit"
             timeInForce = timeInForce or "GoodTillCancel"
@@ -4289,3 +4289,23 @@ class BITMEX:
                 return {"【交易提醒】下单结果": order_info}
         else:  # 回测模式
             return "回测模拟下单成功！"
+
+    def BUY(self, cover_short_price, cover_short_size, open_long_price, open_long_size, order_type=None):
+        if config.backtest != "enabled":    # 实盘模式
+            result1 = self.buytocover(cover_short_price, cover_short_size, order_type)
+            if "完全成交" in str(result1):
+                result2 = self.buy(open_long_price, open_long_size, order_type)
+                return {"平仓结果": result1, "开仓结果": result2}
+            else:
+                return result1
+        else:   # 回测模式
+            return "回测模拟下单成功！"
+
+    def SELL(self, cover_long_price, cover_long_size, open_short_price, open_short_size, order_type=None):
+        if config.backtest != "enabled":    # 实盘模式
+            result1 = self.sell(cover_long_price, cover_long_size, order_type)
+            if "完全成交" in str(result1):
+                result2 = self.sellshort(open_short_price, open_short_size, order_type)
+                return {"平仓结果": result1, "开仓结果": result2}
+            else:
+                return result1
