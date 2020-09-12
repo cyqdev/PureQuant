@@ -2999,7 +2999,7 @@ class BINANCEFUTURES:
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_futures.order(symbol=self.__instrument_id,
                                                side="SELL",
-                                               positionSide="LONG",
+                                               positionSide="BOTH",
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3079,7 +3079,7 @@ class BINANCEFUTURES:
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_futures.order(symbol=self.__instrument_id,
                                                side="BUY",
-                                               positionSide="SHORT",
+                                               positionSide="BOTH",
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3478,7 +3478,7 @@ class BINANCESWAP:
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_swap.order(symbol=self.__instrument_id,
                                                side="SELL",
-                                               positionSide="LONG",
+                                               positionSide="BOTH",
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3558,7 +3558,7 @@ class BINANCESWAP:
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_swap.order(symbol=self.__instrument_id,
                                                side="BUY",
-                                               positionSide="SHORT",
+                                               positionSide="BOTH",
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
