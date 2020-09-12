@@ -447,7 +447,8 @@ class OKEXFUTURES:
         result = {}
         for item in receipt:
             result[item['instrument_id']] = item['contract_val']
-        return result
+        contract_value = float(result[self.__instrument_id])
+        return contract_value
 
     def get_depth(self, type=None, size=None):
         """
@@ -458,8 +459,14 @@ class OKEXFUTURES:
         """
         size = size or 10
         response = self.__okex_futures.get_depth(self.__instrument_id, size=size)
-        asks = response["asks"]
-        bids = response["bids"]
+        asks_list = response["asks"]
+        bids_list = response["bids"]
+        asks= []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -501,7 +508,10 @@ class OKEXSPOT:
             order_type = order_type or 0
             type = type or "limit"
             result = self.__okex_spot.take_order(instrument_id=self.__instrument_id, side="buy", type=type, size=size, price=price, order_type=order_type, notional=notional)
-            order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
+            except:
+                raise SendOrderError(result['error_message'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -584,7 +594,10 @@ class OKEXSPOT:
             order_type = order_type or 0
             type = type or "limit"
             result = self.__okex_spot.take_order(instrument_id=self.__instrument_id, side="sell", type=type, size=size, price=price, order_type=order_type)
-            order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
+            except:
+                raise SendOrderError(result['error_message'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -745,8 +758,14 @@ class OKEXSPOT:
         """
         size = size or 10
         response = self.__okex_spot.get_depth(self.__instrument_id, size=size)
-        asks = response['asks']
-        bids = response['bids']
+        asks_list = response['asks']
+        bids_list = response['bids']
+        bids = []
+        asks = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -776,7 +795,10 @@ class OKEXSWAP:
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
             order_type = order_type or 0  # 如果不填order_type,则默认为普通委托
-            result = self.__okex_swap.take_order(self.__instrument_id, 1, price, size, order_type=order_type)
+            try:
+                result = self.__okex_swap.take_order(self.__instrument_id, 1, price, size, order_type=order_type)
+            except Exception as e:
+                raise SendOrderError(e)
             order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -845,7 +867,10 @@ class OKEXSWAP:
     def sell(self, price, size, order_type=None):
         if config.backtest != "enabled":
             order_type = order_type or 0
-            result = self.__okex_swap.take_order(self.__instrument_id, 3, price, size, order_type=order_type)
+            try:
+                result = self.__okex_swap.take_order(self.__instrument_id, 3, price, size, order_type=order_type)
+            except Exception as e:
+                raise SendOrderError(e)
             order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -914,7 +939,10 @@ class OKEXSWAP:
     def sellshort(self, price, size, order_type=None):
         if config.backtest != "enabled":
             order_type = order_type or 0
-            result = self.__okex_swap.take_order(self.__instrument_id, 2, price, size, order_type=order_type)
+            try:
+                result = self.__okex_swap.take_order(self.__instrument_id, 2, price, size, order_type=order_type)
+            except Exception as e:
+                raise SendOrderError(e)
             order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -983,7 +1011,10 @@ class OKEXSWAP:
     def buytocover(self, price, size, order_type=None):
         if config.backtest != "enabled":
             order_type = order_type or 0
-            result = self.__okex_swap.take_order(self.__instrument_id, 4, price, size, order_type=order_type)
+            try:
+                result = self.__okex_swap.take_order(self.__instrument_id, 4, price, size, order_type=order_type)
+            except Exception as e:
+                raise SendOrderError(e)
             order_info = self.get_order_info(order_id=result['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -1167,7 +1198,8 @@ class OKEXSWAP:
         result = {}
         for item in receipt:
             result[item['instrument_id']]=item['contract_val']
-        return result
+        contract_value = float(result[self.__instrument_id])
+        return contract_value
 
     def get_ticker(self):
         receipt = self.__okex_swap.get_specific_ticker(instrument_id=self.__instrument_id)
@@ -1182,8 +1214,14 @@ class OKEXSWAP:
         """
         size = size or 10
         response = self.__okex_swap.get_depth(self.__instrument_id, size=size)
-        asks = response["asks"]
-        bids = response["bids"]
+        asks_list = response["asks"]
+        bids_list = response["bids"]
+        asks= []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -1249,7 +1287,10 @@ class HUOBIFUTURES:
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='buy',
                             offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id = result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except Exception as e:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -1344,7 +1385,10 @@ class HUOBIFUTURES:
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='sell',
                             offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except Exception as e:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -1438,7 +1482,10 @@ class HUOBIFUTURES:
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='buy',
                             offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except Exception as e:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -1532,7 +1579,10 @@ class HUOBIFUTURES:
             result = self.__huobi_futures.send_contract_order(symbol=self.__symbol, contract_type=self.__contract_type, contract_code=self.__contract_code,
                             client_order_id='', price=price, volume=size, direction='sell',
                             offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except Exception as e:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -1722,6 +1772,7 @@ class HUOBIFUTURES:
 
     def get_contract_value(self):
         receipt = self.__huobi_futures.get_contract_info()
+        print(receipt)
         for item in receipt['data']:
             if item["contract_code"] == self.__contract_code:
                 contract_value = item["contract_size"]
@@ -1734,8 +1785,14 @@ class HUOBIFUTURES:
         :return:返回20档深度数据
         """
         response = self.__huobi_futures.get_contract_depth(self.__contract_code, type="step0")
-        asks = response["tick"]["asks"]
-        bids = response["tick"]["bids"]
+        asks_list = response["tick"]["asks"]
+        bids_list = response["tick"]["bids"]
+        asks = []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -1788,7 +1845,10 @@ class HUOBISWAP:
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='buy',
                             offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -1882,7 +1942,10 @@ class HUOBISWAP:
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='sell',
                             offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -1976,7 +2039,10 @@ class HUOBISWAP:
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='buy',
                             offset='close', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -2070,7 +2136,10 @@ class HUOBISWAP:
             result = self.__huobi_swap.send_contract_order(contract_code=self.__instrument_id,
                             client_order_id='', price=price, volume=size, direction='sell',
                             offset='open', lever_rate=self.__leverage, order_price_type=order_price_type)
-            order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            try:
+                order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
+            except:
+                raise SendOrderError(result['err_msg'])
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
@@ -2274,8 +2343,14 @@ class HUOBISWAP:
         :return:返回20档深度数据
         """
         response = self.__huobi_swap.get_contract_depth(contract_code=self.__instrument_id, type="step0")
-        asks = response["tick"]["asks"]
-        bids = response["tick"]["bids"]
+        asks_list = response["tick"]["asks"]
+        bids_list = response["tick"]["bids"]
+        asks = []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -2486,7 +2561,7 @@ class HUOBISPOT:
 
     def get_order_info(self, order_id):
         result = self.__huobi_spot.order_info(order_id)
-        instrument_id = self.__symbol
+        instrument_id = self.__instrument_id
         action = None
         try:
             if "buy" in result['data']['type']:
@@ -2580,8 +2655,14 @@ class HUOBISPOT:
         """
         size = size or 10
         response = self.__huobi_spot.get_depth(self.__instrument_id, depth=size, type="step0")
-        asks = response["tick"]["asks"]
-        bids = response["tick"]["bids"]
+        asks_list = response["tick"]["asks"]
+        bids_list = response["tick"]["bids"]
+        asks = []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -2797,7 +2878,7 @@ class BINANCESPOT:
         if result['status'] == "FILLED":
             dict = {"交易所": "币安现货", "币对": instrument_id, "方向": action, "订单状态": "完全成交",
                     "成交均价": float(result['price']),
-                    "数量": float(result['executedQty']),
+                    "已成交数量": float(result['executedQty']),
                     "成交金额": float(result["cummulativeQuoteQty"])}
             return dict
         elif result['status'] == "REJECTED":
@@ -2806,7 +2887,7 @@ class BINANCESPOT:
         elif result['status'] == "CANCELED":
             dict = {"交易所": "币安现货", "币对": instrument_id, "方向": action, "订单状态": "撤单成功",
                     "成交均价": float(result['price']),
-                    "数量": float(result['executedQty']),
+                    "已成交数量": float(result['executedQty']),
                     "成交金额": float(result["cummulativeQuoteQty"])}
             return dict
         elif result['status'] == "NEW":
@@ -2815,13 +2896,13 @@ class BINANCESPOT:
         elif result['status'] == "PARTIALLY_FILLED":
             dict = {"交易所": "币安现货", "币对": instrument_id, "方向": action, "订单状态": "部分成交",
                     "成交均价": float(result['price']),
-                    "数量": float(result['executedQty']),
+                    "已成交数量": float(result['executedQty']),
                     "成交金额": float(result["cummulativeQuoteQty"])}
             return dict
         elif result['status'] == "EXPIRED":
             dict = {"交易所": "币安现货", "币对": instrument_id, "方向": action, "订单状态": "订单被交易引擎取消",
                     "成交均价": float(result['price']),
-                    "数量": float(result['executedQty']),
+                    "已成交数量": float(result['executedQty']),
                     "成交金额": float(result["cummulativeQuoteQty"])}
             return dict
         elif result['status'] == "PENDING_CANCEL	":
@@ -2881,8 +2962,14 @@ class BINANCESPOT:
         :return:返回10档深度数据
         """
         response = self.__binance_spot.depth(self.__instrument_id)
-        asks = response["asks"]
-        bids = response["bids"]
+        asks_list = response["asks"]
+        bids_list = response["bids"]
+        asks = []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -3349,7 +3436,7 @@ class BINANCEFUTURES:
                     direction = "none"
                 else:
                     direction = 'long' if "-" not in item["positionAmt"] else "short"
-                amount = int(item['positionAmt'])
+                amount = abs(int(item['positionAmt']))
                 price = float(item["entryPrice"])
                 result = {'direction': direction, 'amount': amount, 'price': price}
         return result
@@ -3365,8 +3452,14 @@ class BINANCEFUTURES:
         :return:返回10档深度数据
         """
         response = self.__binance_futures.depth(self.__instrument_id)
-        asks = response["asks"]
-        bids = response["bids"]
+        asks_list = response["asks"]
+        bids_list = response["bids"]
+        asks = []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":
@@ -3828,7 +3921,7 @@ class BINANCESWAP:
                     direction = "none"
                 else:
                     direction = 'long' if "-" not in item["positionAmt"] else "short"
-                amount = float(item['positionAmt'])
+                amount = abs(float(item['positionAmt']))
                 price = float(item["entryPrice"])
                 result = {'direction': direction, 'amount': amount, 'price': price}
         return result
@@ -3844,8 +3937,14 @@ class BINANCESWAP:
         :return:返回10档深度数据
         """
         response = self.__binance_swap.depth(self.__instrument_id)
-        asks = response["asks"]
-        bids = response["bids"]
+        asks_list = response["asks"]
+        bids_list = response["bids"]
+        asks = []
+        bids = []
+        for i in asks_list:
+            asks.append(float(i[0]))
+        for j in bids_list:
+            bids.append(float(j[0]))
         if type == "asks":
             return asks
         elif type == "bids":

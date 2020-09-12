@@ -84,5 +84,15 @@ class MARKET:
 
     def contract_value(self):
         """获取合约面值"""
-        contract_value = float(self.__platform.get_contract_value()['{}'.format(self.__instrument_id)])
+        contract_value = float(self.__platform.get_contract_value())
         return contract_value
+
+    def asks(self):
+        """获取卖盘订单簿"""
+        result = self.__platform.get_depth("asks")
+        return result
+    
+    def bids(self):
+        """获取买盘订单簿"""
+        result = self.__platform.get_depth("bids")
+        return result
