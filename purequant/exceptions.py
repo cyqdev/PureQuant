@@ -40,3 +40,6 @@ class GetOrderError(CunstomException):
 
 class GetPositionError(CunstomException):
     defaul_msg = "查询持仓失败！"
+
+class SetMarginModeError(CunstomException):
+    defaul_msg = "设置合约币种账户模式失败！"

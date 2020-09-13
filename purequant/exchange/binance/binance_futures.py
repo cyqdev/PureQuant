@@ -235,3 +235,17 @@ def set_leverage(symbol, leverage):
               "leverage": leverage}
     data = signedRequest("POST", "/dapi/v1/leverage", params)
     return data
+
+def set_side_mode(dualSidePosition):
+    """更改持仓模式.变换用户在 所有symbol 合约上的持仓模式：双向持仓或单向持仓。"true"为双向持仓模式；"false"为单向持仓模式"""
+    params = {"dualSidePosition": dualSidePosition}
+    data = signedRequest("POST", "/dapi/v1/positionSide/dual", params)
+    return data
+
+def set_margin_mode(symbol, marginType):
+    """变换逐全仓模式.变换用户在指定symbol合约上的保证金模式：逐仓或全仓。
+        不同持仓方向上使用相同的保证金模式。双向持仓模式下的逐仓,LONG 与 SHORT使用独立的逐仓仓位。"""
+    params = {"symbol": symbol,
+              "marginType": marginType}     # 保证金模式 ISOLATED(逐仓), CROSSED(全仓)
+    data = signedRequest("POST", "/dapi/v1/marginType", params)
+    return data

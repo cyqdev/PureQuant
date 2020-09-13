@@ -27,7 +27,8 @@ class OKEXFUTURES:
     """okex交割合约操作  https://www.okex.com/docs/zh/#futures-README"""
     def __init__(self, access_key, secret_key, passphrase, instrument_id, leverage=None):
         """
-        okex交割合约
+        okex交割合约，初始化时会自动设置成全仓模式，可以传入参数设定开仓杠杆倍数。
+        设置合约币种账户模式时，注意：当前有仓位或者有挂单时禁止切换账户模式。
         :param access_key:
         :param secret_key:
         :param passphrase:
@@ -42,6 +43,11 @@ class OKEXFUTURES:
         self.__leverage = leverage or 20
         self.__okex_futures.set_leverage(leverage=self.__leverage,
                                          underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1])
+        try:
+            self.__okex_futures.set_margin_mode(underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1],
+                                                margin_mode="crossed")
+        except Exception as e:
+            raise SetMarginModeError(e)
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":   # 实盘模式
@@ -2999,6 +3005,10 @@ class BINANCEFUTURES:
         self.__binance_futures.set(self.__access_key, self.__secret_key)   # 设置api
         self.__leverage = leverage or 20
         self.__binance_futures.set_leverage(self.__instrument_id, self.__leverage)
+        # 设置所有symbol合约上的持仓模式为单向持仓模式
+        self.__binance_futures.set_side_mode(dualSidePosition="false")
+        # 设置指定symbol合约上的保证金模式为全仓模式
+        self.__binance_futures.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
 
 
     def buy(self, price, size, order_type=None, timeInForce=None):
@@ -3484,7 +3494,12 @@ class BINANCESWAP:
         self.__binance_swap = binance_swap
         self.__binance_swap.set(self.__access_key, self.__secret_key)   # 设置api
         self.__leverage = leverage or 20
-        self.__binance_swap.set_leverage(self.__instrument_id, self.__leverage)
+        self.__binance_swap.set_leverage(self.__instrument_id, self.__leverage) # 设置杠杆倍数
+        # 设置所有symbol合约上的持仓模式为单向持仓模式
+        self.__binance_swap.set_side_mode(dualSidePosition="false")
+        # 设置指定symbol合约上的保证金模式为全仓模式
+        self.__binance_swap.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
+
 
     def buy(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
