@@ -48,7 +48,7 @@ class Strategy:
             self.counter = 0  # 计数器
             self.bollinger_lengths = bollinger_lengths  # 布林通道参数
             self.filter_length = filter_length  # 过滤器参数
-            self.out_day = 0   # 自适应出场ma的初始值为0,开仓后赋值为布林通道参数的值
+            self.out_day = 50   # 自适应出场ma的初始值为50,开仓后赋值为布林通道参数的值
         except:
             logger.warning()
 
