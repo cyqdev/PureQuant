@@ -44,11 +44,12 @@ class OKEXFUTURES:
         try:
             self.__okex_futures.set_margin_mode(underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1],
                                                 margin_mode="crossed")
+            self.__okex_futures.set_leverage(leverage=self.__leverage,
+                                             underlying=self.__instrument_id.split("-")[0] + "-" +
+                                                        self.__instrument_id.split("-")[1])  # 设置账户模式为全仓模式后再设置杠杆倍数
         except Exception as e:
-            raise SetMarginModeError(e)
-        self.__okex_futures.set_leverage(leverage=self.__leverage,
-                                         underlying=self.__instrument_id.split("-")[0] + "-" +
-                                                    self.__instrument_id.split("-")[1]) # 设置账户模式为全仓模式后再设置杠杆倍数
+            print("OKEX交割合约设置全仓模式失败！错误：{}".format(str(e)))
+
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":   # 实盘模式
@@ -374,26 +375,31 @@ class OKEXFUTURES:
             action = "卖出平多"
         if result['type'] == '4':
             action = "买入平空"
+        # 根据返回的数据中的合约id来判断是u本位合约还是币本位合约，计算成交金额两种方式有区别
+        price = float(result['price_avg'])   # 成交均价
+        amount = int(result['filled_qty'])   # 已成交数量
+        if instrument_id.split("-")[1] == "usd" or instrument_id.split("-")[1] == "USD":
+            turnover = float(result['contract_val']) * int(result['filled_qty'])
+        elif instrument_id.split("-")[1] == "usdt" or instrument_id.split("-")[1] == "USDT":
+            turnover = round(float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']), 2)
+
         if int(result['state']) == 2:
-            dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "完全成交", "成交均价": float(result['price_avg']),
-                    "已成交数量": int(result['filled_qty']),
-                    "成交金额": round(float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']),
-                                  2)}
+            dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "完全成交", "成交均价": price,
+                    "已成交数量": amount, "成交金额": turnover}
             return dict
         elif int(result['state']) == -2:
             dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "失败"}
             return dict
         elif int(result['state']) == -1:
-            dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单成功", "成交均价": float(result['price_avg']),
-                    "已成交数量": int(result['filled_qty']), "成交金额": round(float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']), 2)}
+            dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单成功", "成交均价": price,
+                    "已成交数量": amount, "成交金额": turnover}
             return dict
         elif int(result['state']) == 0:
             dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "等待成交"}
             return dict
         elif int(result['state']) == 1:
-            dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "部分成交", "成交均价": float(result['price_avg']),
-                    "已成交数量": int(result['filled_qty']), "成交金额": round(
-                    float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']), 2)}
+            dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "部分成交", "成交均价": price,
+                    "已成交数量": amount, "成交金额": turnover}
             return dict
         elif int(result['state']) == 3:
             dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "下单中"}
@@ -797,7 +803,10 @@ class OKEXSWAP:
         self.__instrument_id = instrument_id
         self.__okex_swap = okexswap.SwapAPI(self.__access_key, self.__secret_key, self.__passphrase)
         self.__leverage = leverage or 20
-        self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=3)
+        try:
+            self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=3)
+        except Exception as e:
+            print("OKEX永续合约设置杠杆倍数失败！错误：{}".format(str(e)))
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
@@ -1134,26 +1143,31 @@ class OKEXSWAP:
             action = "卖出平多"
         if result['type'] == '4':
             action = "买入平空"
+
+        price = float(result['price_avg'])  # 成交均价
+        amount = int(result['filled_qty'])  # 已成交数量
+        if instrument_id.split("-")[1] == "usd" or instrument_id.split("-")[1] == "USD":
+            turnover = float(result['contract_val']) * int(result['filled_qty'])
+        elif instrument_id.split("-")[1] == "usdt" or instrument_id.split("-")[1] == "USDT":
+            turnover = round(float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']), 2)
+        
         if int(result['state']) == 2:
-            dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "完全成交", "成交均价": float(result['price_avg']),
-                    "已成交数量": int(result['filled_qty']), "成交金额": round(
-                    float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']), 2)}
+            dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "完全成交", "成交均价": price,
+                    "已成交数量": amount, "成交金额": turnover}
             return dict
         elif int(result['state']) == -2:
             dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "失败"}
             return dict
         elif int(result['state']) == -1:
-            dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单成功", "成交均价": float(result['price_avg']),
-                    "已成交数量": int(result['filled_qty']), "成交金额": round(
-                    float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']), 2)}
+            dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单成功", "成交均价": price,
+                    "已成交数量": amount, "成交金额": turnover}
             return dict
         elif int(result['state']) == 0:
             dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "等待成交"}
             return dict
         elif int(result['state']) == 1:
-            dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "部分成交", "成交均价": float(result['price_avg']),
-                    "已成交数量": int(result['filled_qty']), "成交金额": round(
-                    float(result['contract_val']) * int(result['filled_qty']) * float(result['price_avg']), 2)}
+            dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "部分成交", "成交均价": price,
+                    "已成交数量": amount, "成交金额": turnover}
             return dict
         elif int(result['state']) == 3:
             dict = {"交易所": "Okex永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "下单中"}
