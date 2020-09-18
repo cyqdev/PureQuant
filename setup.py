@@ -17,7 +17,8 @@ setup(
         "purequant/exchange/bitmex",
         "purequant/example/double_moving_average_strategy",
         "purequant/example/plot_signal",
-        "purequant/example/boll_breakthrough_strategy"
+        "purequant/example/boll_breakthrough_strategy",
+        "purequant/example/turtle_strategy",
     ],
     platforms="any",
     description="数字货币程序化交易开源框架，助力中小投资者快速搭建程序化交易系统。",
@@ -50,5 +51,6 @@ setup(
         "purequant/example/double_moving_average_strategy": ["*.json"],
         "purequant/example/plot_signal": ["*.json"],
         "purequant/example/boll_breakthrough_strategy": ["*.json"],
+        "purequant/example/turtle_strategy": ["*.json"],
     },
 )
