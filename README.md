@@ -39,23 +39,12 @@ ProjectName
 ## 有任何问题，欢迎联系
 
 + 网站：http://purequant.cloud
+
 + 论坛：http://purequant.club
+
+  在使用PureQuant的过程中，如有任何疑问或建议，请在论坛上发帖交流。
+
 + 框架使用视频教程：https://www.bilibili.com/video/BV1TA411e7rT?p=1
-+ 微信：`caa-essay`   进交流群与量化精英们共同交流学习
-
-## 赞赏与支持
-
-+ 微信
-
-  <img src="https://github.com/Gary-Hertel/pictures/raw/master/微信图片_20200819173133.jpg" style="zoom:25%;" />
-
-+ 支付宝
-
-  <img src="https://github.com/Gary-Hertel/pictures/raw/master/支付宝.jpg" style="zoom:25%;" />
-
-  
-
-感谢您的赞赏与支持！
 
 
 ------
