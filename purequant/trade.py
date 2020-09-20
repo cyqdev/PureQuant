@@ -437,19 +437,36 @@ class OKEXFUTURES:
         receipt = self.__okex_futures.get_kline(self.__instrument_id, granularity=granularity)
         return receipt
 
-    def get_position(self):
+    def get_position(self, mode=None):
         result = self.__okex_futures.get_specific_position(instrument_id=self.__instrument_id)
-        if int(result['holding'][0]['long_qty']) > 0:
-            dict = {'direction': 'long', 'amount': int(result['holding'][0]['long_qty']),
-                    'price': float(result['holding'][0]['long_avg_cost'])}
+        if mode == "both":     # 若传入参数为"both"则查询双向持仓模式的持仓信息
+            dict = {"long":
+                {
+                'amount': int(result['holding'][0]['long_qty']),
+                'price': float(result['holding'][0]['long_avg_cost'])
+            },
+            "short":
+                {
+                'amount': int(result['holding'][0]['short_qty']),
+                'price': float(result['holding'][0]['short_avg_cost'])
+            }
+            }
             return dict
-        elif int(result['holding'][0]['short_qty']) > 0:
-            dict = {'direction': 'short', 'amount': int(result['holding'][0]['short_qty']),
-                    'price': float(result['holding'][0]['short_avg_cost'])}
-            return dict
-        else:
-            dict = {'direction': 'none', 'amount': 0, 'price': 0.0}
-            return dict
+        else:   # 未传入参数则默认为查询单向持仓模式的持仓信息
+            if int(result['holding'][0]['long_qty']) > 0:
+                dict = {'direction': 'long', 'amount': int(result['holding'][0]['long_qty']),
+                        'price': float(result['holding'][0]['long_avg_cost'])}
+                return dict
+            elif int(result['holding'][0]['short_qty']) > 0:
+                dict = {'direction': 'short', 'amount': int(result['holding'][0]['short_qty']),
+                        'price': float(result['holding'][0]['short_avg_cost'])}
+                return dict
+            else:
+                dict = {'direction': 'none', 'amount': 0, 'price': 0.0}
+                return dict
+
+
+
 
     def get_ticker(self):
         receipt = self.__okex_futures.get_specific_ticker(instrument_id=self.__instrument_id)
@@ -1204,15 +1221,28 @@ class OKEXSWAP:
         receipt = self.__okex_swap.get_kline(self.__instrument_id, granularity=granularity)
         return receipt
 
-    def get_position(self):
+    def get_position(self, mode=None):
         receipt = self.__okex_swap.get_specific_position(self.__instrument_id)
-        direction = receipt['holding'][0]['side']
-        amount = int(receipt['holding'][0]['position'])
-        price = float(receipt['holding'][0]['avg_cost'])
-        if amount == 0:
-            direction = "none"
-        result = {'direction': direction, 'amount': amount, 'price': price}
-        return result
+        if mode == "both":
+            result = {
+                receipt['holding'][0]["side"]: {
+                    "price": float(receipt['holding'][0]['avg_cost']),
+                    "amount": int(receipt['holding'][0]['position'])
+                },
+                receipt['holding'][1]["side"]: {
+                    "price": float(receipt['holding'][1]['avg_cost']),
+                    "amount": int(receipt['holding'][1]['position'])
+                }
+            }
+            return result
+        else:
+            direction = receipt['holding'][0]['side']
+            amount = int(receipt['holding'][0]['position'])
+            price = float(receipt['holding'][0]['avg_cost'])
+            if amount == 0:
+                direction = "none"
+            result = {'direction': direction, 'amount': amount, 'price': price}
+            return result
 
     def get_contract_value(self):
         receipt = self.__okex_swap.get_instruments()
@@ -1770,21 +1800,39 @@ class HUOBIFUTURES:
         list.reverse()
         return list
 
-    def get_position(self):
+    def get_position(self, mode=None):
         receipt = self.__huobi_futures.get_contract_position_info(self.__symbol)
-        if receipt['data'] != []:
-            direction = receipt['data'][0]['direction']
-            amount = receipt['data'][0]['volume']
-            price = receipt['data'][0]['cost_hold']
-            if amount > 0 and direction == "buy":
-                dict = {'direction': 'long', 'amount': amount, 'price': price}
-                return dict
-            elif amount > 0 and direction == "sell":
-                dict = {'direction': 'short', 'amount': amount, 'price': price}
-                return dict
+        if mode == "both":
+            if receipt['data'] == []:
+                return {"long": {"price": 0, "amount": 0}, "short": {"price": 0, "amount": 0}}
+            elif len(receipt['data']) == 1:
+                if receipt['data'][0]['direction'] == "buy":
+                    return {"long": {"price": receipt['data'][0]['cost_hold'], "amount": receipt['data'][0]['volume']}, "short": {"price": 0, "amount": 0}}
+                elif receipt['data'][0]['direction'] == "sell":
+                    return {"short": {"price": receipt['data'][0]['cost_hold'], "amount": receipt['data'][0]['volume']}, "long": {"price": 0, "amount": 0}}
+            elif len(receipt['data']) == 2:
+                return {
+                    "long": {
+                        "price": receipt['data'][0]['cost_hold'], "amount": receipt['data'][0]['volume']
+                    },
+                        "short": {
+                            "price": receipt['data'][1]['cost_hold'], "amount": receipt['data'][1]['volume']
+                        }
+                }
         else:
-            dict = {'direction': 'none', 'amount': 0, 'price': 0.0}
-        return dict
+            if receipt['data'] != []:
+                direction = receipt['data'][0]['direction']
+                amount = receipt['data'][0]['volume']
+                price = receipt['data'][0]['cost_hold']
+                if amount > 0 and direction == "buy":
+                    dict = {'direction': 'long', 'amount': amount, 'price': price}
+                    return dict
+                elif amount > 0 and direction == "sell":
+                    dict = {'direction': 'short', 'amount': amount, 'price': price}
+                    return dict
+            else:
+                dict = {'direction': 'none', 'amount': 0, 'price': 0.0}
+                return dict
 
     def get_ticker(self):
         receipt = self.__huobi_futures.get_contract_market_merged(self.__contract_code)
@@ -1793,7 +1841,6 @@ class HUOBIFUTURES:
 
     def get_contract_value(self):
         receipt = self.__huobi_futures.get_contract_info()
-        print(receipt)
         for item in receipt['data']:
             if item["contract_code"] == self.__contract_code:
                 contract_value = item["contract_size"]
@@ -2329,21 +2376,39 @@ class HUOBISWAP:
         list.reverse()
         return list
 
-    def get_position(self):
+    def get_position(self, mode=None):
         receipt = self.__huobi_swap.get_contract_position_info(self.__instrument_id)
-        if receipt['data'] != []:
-            direction = receipt['data'][0]['direction']
-            amount = receipt['data'][0]['volume']
-            price = receipt['data'][0]['cost_hold']
-            if amount > 0 and direction == "buy":
-                dict = {'direction': 'long', 'amount': amount, 'price': price}
-                return dict
-            elif amount > 0 and direction == "sell":
-                dict = {'direction': 'short', 'amount': amount, 'price': price}
-                return dict
+        if mode == "both":
+            if receipt['data'] == []:
+                return {"long": {"price": 0, "amount": 0}, "short": {"price": 0, "amount": 0}}
+            elif len(receipt['data']) == 1:
+                if receipt['data'][0]['direction'] == "buy":
+                    return {"long": {"price": receipt['data'][0]['cost_hold'], "amount": receipt['data'][0]['volume']}, "short": {"price": 0, "amount": 0}}
+                elif receipt['data'][0]['direction'] == "sell":
+                    return {"short": {"price": receipt['data'][0]['cost_hold'], "amount": receipt['data'][0]['volume']}, "long": {"price": 0, "amount": 0}}
+            elif len(receipt['data']) == 2:
+                return {
+                    "long": {
+                        "price": receipt['data'][0]['cost_hold'], "amount": receipt['data'][0]['volume']
+                    },
+                        "short": {
+                            "price": receipt['data'][1]['cost_hold'], "amount": receipt['data'][1]['volume']
+                        }
+                }
         else:
-            dict = {'direction': 'none', 'amount': 0, 'price': 0.0}
-        return dict
+            if receipt['data'] != []:
+                direction = receipt['data'][0]['direction']
+                amount = receipt['data'][0]['volume']
+                price = receipt['data'][0]['cost_hold']
+                if amount > 0 and direction == "buy":
+                    dict = {'direction': 'long', 'amount': amount, 'price': price}
+                    return dict
+                elif amount > 0 and direction == "sell":
+                    dict = {'direction': 'short', 'amount': amount, 'price': price}
+                    return dict
+            else:
+                dict = {'direction': 'none', 'amount': 0, 'price': 0.0}
+                return dict
 
     def get_ticker(self):
         receipt = self.__huobi_swap.get_contract_market_merged(self.__instrument_id)
@@ -3002,13 +3067,14 @@ class BINANCESPOT:
 class BINANCEFUTURES:
     """币安币本位合约rest api"""
 
-    def __init__(self, access_key, secret_key, instrument_id, leverage=None):
+    def __init__(self, access_key, secret_key, instrument_id, leverage=None, position_side=None):
         """
         初始化
         :param access_key: api_key
         :param secret_key: secret_key
         :param symbol: 合约ID，例如：交割合约："ADA-USD-200925"  永续合约："ADA-USD-SWAP"
         :param leverage:开仓杠杆倍数，如不填则默认设置为20倍
+        :param position_side:持仓模式，如不填则默认为单向持仓，如需双向持仓请传入"both"
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
@@ -3018,19 +3084,26 @@ class BINANCEFUTURES:
             self.__instrument_id = "{}{}_{}".format(instrument_id.split("-")[0], instrument_id.split("-")[1], instrument_id.split("-")[2])
         self.__binance_futures = binance_futures
         self.__binance_futures.set(self.__access_key, self.__secret_key)   # 设置api
+        self.position_side = position_side  # 持仓模式
         self.__leverage = leverage or 20
-        # 设置所有symbol合约上的持仓模式为单向持仓模式
-        self.__binance_futures.set_side_mode(dualSidePosition="false")
+        if self.position_side == "both":
+            # 设置所有symbol合约上的持仓模式为双向持仓模式
+            self.__binance_futures.set_side_mode(dualSidePosition="true")
+        else:
+            # 设置所有symbol合约上的持仓模式为单向持仓模式
+            self.__binance_futures.set_side_mode(dualSidePosition="false")
         # 设置指定symbol合约上的保证金模式为全仓模式
         self.__binance_futures.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
         self.__binance_futures.set_leverage(self.__instrument_id, self.__leverage)
 
     def buy(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "LONG" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_futures.order(symbol=self.__instrument_id,
                                                side="BUY",
+                                               positionSide=positionSide,
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3106,11 +3179,12 @@ class BINANCEFUTURES:
 
     def sell(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "LONG" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_futures.order(symbol=self.__instrument_id,
                                                side="SELL",
-                                               positionSide="BOTH",
+                                               positionSide=positionSide,
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3186,11 +3260,12 @@ class BINANCEFUTURES:
 
     def buytocover(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "SHORT" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_futures.order(symbol=self.__instrument_id,
                                                side="BUY",
-                                               positionSide="BOTH",
+                                               positionSide=positionSide,
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3266,11 +3341,12 @@ class BINANCEFUTURES:
 
     def sellshort(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "SHORT" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_futures.order(symbol=self.__instrument_id,
                                                side="SELL",
-                                               positionSide="BOTH",
+                                               positionSide=positionSide,
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3373,8 +3449,12 @@ class BINANCEFUTURES:
         instrument_id = self.__instrument_id
         action = None
         if result['side'] == 'BUY' and result["positionSide"] == "BOTH":
-            action = "买入开多"
+            action = "买入"
         elif result['side'] == 'SELL' and result["positionSide"] == "BOTH":
+            action = "卖出"
+        elif result['side'] == 'BUY' and result["positionSide"] == "LONG":
+            action = "买入开多"
+        elif result['side'] == 'SELL' and result["positionSide"] == "SHORT":
             action = "卖出开空"
         elif result['side'] == 'BUY' and result["positionSide"] == "SHORT":
             action = "买入平空"
@@ -3431,7 +3511,7 @@ class BINANCEFUTURES:
 
     def get_kline(self, time_frame):
         """
-        币安现货获取k线数据
+        币安币本位合约获取k线数据
         :param time_frame: k线周期。1m， 3m， 5m， 15m， 30m， 1h， 2h， 4h， 6h， 8h， 12h， 1d， 3d， 1w， 1M
         :return:返回一个列表，包含开盘时间戳、开盘价、最高价、最低价、收盘价、成交量。
         """
@@ -3447,23 +3527,48 @@ class BINANCEFUTURES:
         receipt.reverse()
         return receipt
 
-    def get_position(self):
+    def get_position(self, mode=None):
         """
-        币安现货获取持仓信息
+        币安币本位合约获取持仓信息
         :return: 返回一个字典，{'direction': direction, 'amount': amount, 'price': price}
         """
-        result = None
-        receipt = self.__binance_futures.position()
-        for item in receipt:
-            if item["symbol"] == self.__instrument_id:
-                if item["positionAmt"] == "0":
-                    direction = "none"
-                else:
-                    direction = 'long' if "-" not in item["positionAmt"] else "short"
-                amount = abs(int(item['positionAmt']))
-                price = float(item["entryPrice"])
-                result = {'direction': direction, 'amount': amount, 'price': price}
-        return result
+        if mode == "both":
+            long_amount = 0
+            long_price = 0
+            short_amount = 0
+            short_price = 0
+            receipt = self.__binance_futures.position()
+            for item in receipt:
+                if item["symbol"] == self.__instrument_id:
+                    if item["positionSide"] == "LONG":
+                        long_amount = int(item["positionAmt"])
+                        long_price = float(item["entryPrice"])
+                    if item["positionSide"] == "SHORT":
+                        short_amount = abs(int(item["positionAmt"]))
+                        short_price = float(item["entryPrice"])
+            return {
+                "long": {
+                    "price": long_price,
+                    "amount": long_amount
+                },
+                "short":{
+                    "price": short_price,
+                    "amount": short_amount
+                }
+            }
+        else:
+            result = None
+            receipt = self.__binance_futures.position()
+            for item in receipt:
+                if item["symbol"] == self.__instrument_id and item["positionSide"] == "BOTH":
+                    if item["positionAmt"] == "0":
+                        direction = "none"
+                    else:
+                        direction = 'long' if "-" not in item["positionAmt"] else "short"
+                    amount = abs(int(item['positionAmt']))
+                    price = float(item["entryPrice"])
+                    result = {'direction': direction, 'amount': amount, 'price': price}
+            return result
 
     def get_contract_value(self):
         receipt = self.__binance_futures.get_contract_value(self.__instrument_id)
@@ -3494,13 +3599,14 @@ class BINANCEFUTURES:
 class BINANCESWAP:
     """币安USDT合约rest api"""
 
-    def __init__(self, access_key, secret_key, instrument_id, leverage=None):
+    def __init__(self, access_key, secret_key, instrument_id, leverage=None, position_side=None):
         """
         初始化
         :param access_key: api_key
         :param secret_key: secret_key
         :param symbol: 合约ID,例如'BTC-USDT-SWAP'
         :param leverage:杠杆倍数，如不填则默认设置为20倍杠杆
+        :param leverage:持仓模式，如不填则默认设置为单向持仓，如需双向持仓请传入参数"both"
         """
         self.__access_key = access_key
         self.__secret_key = secret_key
@@ -3508,18 +3614,24 @@ class BINANCESWAP:
         self.__binance_swap = binance_swap
         self.__binance_swap.set(self.__access_key, self.__secret_key)   # 设置api
         self.__leverage = leverage or 20
-        # 设置所有symbol合约上的持仓模式为单向持仓模式
-        self.__binance_swap.set_side_mode(dualSidePosition="false")
+        self.position_side = position_side
+        if self.position_side == "both":
+            self.__binance_swap.set_side_mode(dualSidePosition="true")
+        else:
+            # 设置所有symbol合约上的持仓模式为单向持仓模式
+            self.__binance_swap.set_side_mode(dualSidePosition="false")
         # 设置指定symbol合约上的保证金模式为全仓模式
         self.__binance_swap.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
         self.__binance_swap.set_leverage(self.__instrument_id, self.__leverage)  # 设置杠杆倍数
 
     def buy(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "LONG" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_swap.order(symbol=self.__instrument_id,
                                                side="BUY",
+                                               positionSide=positionSide,
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3595,10 +3707,11 @@ class BINANCESWAP:
 
     def sell(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "LONG" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_swap.order(symbol=self.__instrument_id,
-                                               side="SELL",
+                                               side=positionSide,
                                                positionSide="BOTH",
                                                quantity=size,
                                                price=price,
@@ -3675,11 +3788,12 @@ class BINANCESWAP:
 
     def buytocover(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "SHORT" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_swap.order(symbol=self.__instrument_id,
                                                side="BUY",
-                                               positionSide="BOTH",
+                                               positionSide=positionSide,
                                                quantity=size,
                                                price=price,
                                                orderType=order_type,
@@ -3755,6 +3869,7 @@ class BINANCESWAP:
 
     def sellshort(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
+            positionSide = "SHORT" if self.position_side == "both" else "BOTH"
             order_type = "LIMIT" if order_type is None else order_type  # 默认限价单
             timeInForce = "GTC" if timeInForce is None else timeInForce  # 默认成交为止，订单会一直有效，直到被成交或者取消。
             result = self.__binance_swap.order(symbol=self.__instrument_id,
@@ -3862,8 +3977,12 @@ class BINANCESWAP:
         instrument_id = self.__instrument_id
         action = None
         if result['side'] == 'BUY' and result["positionSide"] == "BOTH":
-            action = "买入开多"
+            action = "买入"
         elif result['side'] == 'SELL' and result["positionSide"] == "BOTH":
+            action = "卖出"
+        elif result['side'] == 'BUY' and result["positionSide"] == "LONG":
+            action = "买入开多"
+        elif result['side'] == 'SELL' and result["positionSide"] == "SHORT":
             action = "卖出开空"
         elif result['side'] == 'BUY' and result["positionSide"] == "SHORT":
             action = "买入平空"
@@ -3905,7 +4024,7 @@ class BINANCESWAP:
             return dict
 
     def revoke_order(self, order_id):
-        """币安币本位合约撤销订单"""
+        """币安USDT合约撤销订单"""
         receipt = self.__binance_swap.cancel(self.__instrument_id, orderId=order_id)
         if receipt['status'] == "CANCELED":
             return '【交易提醒】撤单成功'
@@ -3913,14 +4032,14 @@ class BINANCESWAP:
             return '【交易提醒】撤单失败'
 
     def get_ticker(self):
-        """币安币本位合约查询最新价"""
+        """币安USDT合约查询最新价"""
         response = self.__binance_swap.get_ticker(self.__instrument_id)
         receipt = {'symbol': response['symbol'], 'last': response['price']}
         return receipt
 
     def get_kline(self, time_frame):
         """
-        币安现货获取k线数据
+        币安USDT合约获取k线数据
         :param time_frame: k线周期。1m， 3m， 5m， 15m， 30m， 1h， 2h， 4h， 6h， 8h， 12h， 1d， 3d， 1w， 1M
         :return:返回一个列表，包含开盘时间戳、开盘价、最高价、最低价、收盘价、成交量。
         """
@@ -3936,23 +4055,48 @@ class BINANCESWAP:
         receipt.reverse()
         return receipt
 
-    def get_position(self):
+    def get_position(self, mode=None):
         """
-        币安现货获取持仓信息
+        币安USDT合约获取持仓信息
         :return: 返回一个字典，{'direction': direction, 'amount': amount, 'price': price}
         """
-        result = None
-        receipt = self.__binance_swap.position()
-        for item in receipt:
-            if item["symbol"] == self.__instrument_id:
-                if item["positionAmt"] == "0.000":
-                    direction = "none"
-                else:
-                    direction = 'long' if "-" not in item["positionAmt"] else "short"
-                amount = abs(float(item['positionAmt']))
-                price = float(item["entryPrice"])
-                result = {'direction': direction, 'amount': amount, 'price': price}
-        return result
+        if mode == "both":
+            long_amount = 0
+            long_price = 0
+            short_amount = 0
+            short_price = 0
+            receipt = self.__binance_swap.position()
+            for item in receipt:
+                if item["symbol"] == self.__instrument_id:
+                    if item["positionSide"] == "LONG":
+                        long_amount = float(item["positionAmt"])
+                        long_price = float(item["entryPrice"])
+                    if item["positionSide"] == "SHORT":
+                        short_amount = abs(float(item["positionAmt"]))
+                        short_price = float(item["entryPrice"])
+            return {
+                "long": {
+                    "price": long_price,
+                    "amount": long_amount
+                },
+                "short":{
+                    "price": short_price,
+                    "amount": short_amount
+                }
+            }
+        else:
+            result = None
+            receipt = self.__binance_swap.position()
+            for item in receipt:
+                if item["symbol"] == self.__instrument_id:
+                    if item["positionAmt"] == "0.000":
+                        direction = "none"
+                    else:
+                        direction = 'long' if "-" not in item["positionAmt"] else "short"
+                    amount = abs(float(item['positionAmt']))
+                    price = float(item["entryPrice"])
+                    result = {'direction': direction, 'amount': amount, 'price': price}
+            return result
 
     def get_contract_value(self):
         receipt = self.__binance_swap.get_contract_value(self.__instrument_id)
