@@ -34,6 +34,12 @@ def set(apiKey, secret):
     options["apiKey"] = apiKey
     options["secret"] = secret
 
+def balance():
+    """获取账户余额"""
+    data = signedRequest("GET", "/dapi/v1/balance", {})
+    if 'msg' in data:
+        raise ValueError("Error from exchange: {}".format(data['msg']))
+    return data
 
 def depth(symbol, **kwargs):
     """Get order book.

@@ -50,6 +50,15 @@ class OKEXFUTURES:
         except Exception as e:
             print("OKEX交割合约设置全仓模式失败！错误：{}".format(str(e)))
 
+    def get_single_equity(self, symbol):
+        """
+        获取单个合约账户的权益
+        :param symbol: 例如"btc-usdt"
+        :return:返回浮点数
+        """
+        data = self.__okex_futures.get_coin_account(underlying=symbol)
+        result =float(data["equity"])
+        return result
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":   # 实盘模式
@@ -188,7 +197,6 @@ class OKEXFUTURES:
                 return {"【交易提醒】下单结果": order_info}
         else:   # 回测模式
             return "回测模拟下单成功！"
-
 
     def sellshort(self, price, size, order_type=None):
         if config.backtest != "enabled":   # 实盘模式
@@ -408,7 +416,6 @@ class OKEXFUTURES:
             dict = {"交易所": "Okex交割合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单中"}
             return dict
 
-
     def get_kline(self, time_frame):
         if time_frame == "1m" or time_frame == "1M":
             granularity = '60'
@@ -464,9 +471,6 @@ class OKEXFUTURES:
             else:
                 dict = {'direction': 'none', 'amount': 0, 'price': 0.0}
                 return dict
-
-
-
 
     def get_ticker(self):
         receipt = self.__okex_futures.get_specific_ticker(instrument_id=self.__instrument_id)
@@ -803,6 +807,16 @@ class OKEXSPOT:
         else:
             return response
 
+    def get_single_equity(self, currency):
+        """
+        获取币币账户单个币种的余额、冻结和可用等信息。
+        :param currency: 例如"btc"
+        :return:返回浮点数
+        """
+        data = self.__okex_spot.get_coin_account_info(currency=currency)
+        result =float(data["balance"])
+        return result
+
 class OKEXSWAP:
     """okex永续合约操作 https://www.okex.com/docs/zh/#swap-README"""
     def __init__(self, access_key, secret_key, passphrase, instrument_id, leverage=None):
@@ -823,7 +837,17 @@ class OKEXSWAP:
         try:
             self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=3)
         except Exception as e:
-            print("OKEX永续合约设置杠杆倍数失败！错误：{}".format(str(e)))
+            print("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成全仓模式！错误：{}".format(str(e)))
+
+    def get_single_equity(self, instrument_id):
+        """
+        获取单个合约账户的权益
+        :param instrument_id: 例如"TRX-USDT-SWAP"
+        :return:返回浮点数
+        """
+        data = self.__okex_swap.get_coin_account(instrument_id=instrument_id)
+        result =float(data["info"]["equity"])
+        return result
 
     def buy(self, price, size, order_type=None):
         if config.backtest != "enabled":    # 实盘模式
@@ -1308,6 +1332,16 @@ class HUOBIFUTURES:
             else:
                 self.__contract_type = None
                 raise SymbolError("交易所: Huobi 交割合约ID错误，只支持当季与次季合约！")
+
+    def get_single_equity(self, symbol):
+        """
+        获取单个合约账户的权益
+        :param symbol: 例如"BTC","ETH"...
+        :return:返回浮点数
+        """
+        data = self.__huobi_futures.get_contract_account_info(symbol=symbol)
+        result =float(data["data"][0]["margin_balance"])
+        return result
 
     def buy(self, price, size, order_type=None):
         """
@@ -1883,6 +1917,16 @@ class HUOBISWAP:
         self.__instrument_id = "{}-{}".format(instrument_id.split("-")[0], instrument_id.split("-")[1])
         self.__huobi_swap = huobiswap.HuobiSwap(self.__access_key, self.__secret_key)
         self.__leverage = leverage or 20
+
+    def get_single_equity(self, contract_code):
+        """
+        获取单个合约账户的权益
+        :param contract_code: 例如 "BTC-USD"
+        :return:返回浮点数
+        """
+        data = self.__huobi_swap.get_contract_account_info(contract_code=contract_code)
+        result =float(data["data"][0]["margin_balance"])
+        return result
 
     def buy(self, price, size, order_type=None):
         """
@@ -2461,6 +2505,16 @@ class HUOBISPOT:
         self.__currency = (instrument_id.split('-')[0]).lower()
         self.__account_id = self.__huobi_spot.get_accounts()['data'][0]['id']
 
+    def get_single_equity(self, currency):
+        """
+        获取单个币种的权益
+        :param currency: 例如 "USDT"
+        :return:返回浮点数
+        """
+        data = self.__huobi_spot.get_balance_currency(acct_id=self.__account_id, currency=currency)
+        result = float(data[currency])
+        return result
+
     def buy(self, price, size, order_type=None):
         """
         火币现货买入开多
@@ -2773,6 +2827,18 @@ class BINANCESPOT:
         self.__currency = symbol.split("-")[0]
         self.__binance_spot = binance_spot
         self.__binance_spot.set(self.__access_key, self.__secret_key)   # 设置api
+
+    def get_single_equity(self, currency):
+        """
+        获取单个币种的权益
+        :param currency: 例如 "USDT"
+        :return:返回浮点数
+        """
+        data = self.__binance_spot.balances()
+        for i in data:
+            if i == currency:
+                balance = float(data[currency]["free"])
+                return balance
 
     def buy(self, price, size, order_type=None, timeInForce=None):
         """
@@ -3095,6 +3161,18 @@ class BINANCEFUTURES:
         # 设置指定symbol合约上的保证金模式为全仓模式
         self.__binance_futures.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
         self.__binance_futures.set_leverage(self.__instrument_id, self.__leverage)
+
+    def get_single_equity(self, currency):
+        """
+        获取单个币种合约的权益
+        :param currency: 例如 "ETC"
+        :return:返回浮点数
+        """
+        data = self.__binance_futures.balance()
+        for i in data:
+            if i["asset"] == currency:
+                balance = float(i["balance"])
+                return balance
 
     def buy(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
@@ -3624,6 +3702,18 @@ class BINANCESWAP:
         self.__binance_swap.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
         self.__binance_swap.set_leverage(self.__instrument_id, self.__leverage)  # 设置杠杆倍数
 
+    def get_single_equity(self, currency):
+        """
+        获取合约的权益
+        :param currency: 例如 "USDT"或"BNB"
+        :return:返回浮点数
+        """
+        data = self.__binance_swap.balance()
+        for i in data:
+            if i["asset"] == currency:
+                balance = float(i["balance"])
+                return balance
+
     def buy(self, price, size, order_type=None, timeInForce=None):
         if config.backtest != "enabled":  # 实盘模式
             positionSide = "LONG" if self.position_side == "both" else "BOTH"
@@ -4142,6 +4232,17 @@ class BITMEX:
         self.__bitmex = Bitmex(self.__access_key, self.__secret_key, testing=self.__testing)
         self.__leverage = leverage or 20
         self.__bitmex.set_leverage(self.__instrument_id, leverage=self.__leverage)
+
+    def get_single_equity(self, currency=None):
+        """
+        获取合约的权益
+        :param currency: 默认为"XBt",BITMEX所有的交易是用XBT来结算的
+        :return:返回浮点数
+        """
+        currency = "XBt"
+        data = self.__bitmex.get_wallet(currency=currency)
+        XBT = data["prevAmount"] * 0.00000001
+        return XBT
 
     def get_depth(self, type=None, depth=None):
         """
