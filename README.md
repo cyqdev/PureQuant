@@ -44,7 +44,7 @@ ProjectName
 
   在使用PureQuant的过程中，如有任何疑问或建议，请在论坛上发帖交流。
 
-+ 框架使用视频教程：https://study.163.com/course/courseMain.htm?share=2&shareId=400000000697049&courseId=1210749820&_trace_c_p_k2_=3454e36293dd42d6a95c9efc845d2e70
++ 框架使用视频教程：http://m.study.163.com/provider/400000000697049/index.htm?share=2&shareId=400000000697049
 
 
 ------
