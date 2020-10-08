@@ -386,16 +386,17 @@ class Bitmex(object):
         data = self.api_signed_request("POST", "/order", params)
         return (data)
 
-    def cancel_order(self, orderID, **OPargs):
+    def cancel_order(self, orderID=None, clOrdID=None, **OPargs):
         """
         PARAMS:
         orderID 	: STRING
         clOrdID 	: STRING
         text 		: STRING
         """
-        params = {
-            "orderID": orderID
-        }
+        if orderID is not None:
+            params = {"orderID": orderID}
+        else:
+            params = {"clOrdID": clOrdID}
         params.update(OPargs)
         data = self.api_signed_request("DELETE", "/order", params)
         return (data)

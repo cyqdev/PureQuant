@@ -1,86 +1,61 @@
+```json
 {
     "STATUS": {
-        "first_run": "true"
+        "first_run": "true"		
     },
     "MODE": {
-        "backtest": "enabled"
+        "backtest": "enabled"	
     },
     "ASSISTANT": {
-        "automatic_cancellation": "true",
-        "reissue_order": "0.1%",
-        "price_cancellation": "true",
-        "amplitude": "0.5%",
-        "time_cancellation": "true",
-        "seconds": 10
+        "automatic_cancellation": "true",						
+        "reissue_order": "0.0%",			
+        "price_cancellation": "true",		
+        "amplitude": "0.5%",				
+        "time_cancellation": "true",		
+        "seconds": 10						
     },
-    "EXCHANGE": {
-        "access_key": "your access key",
-        "secret_key": "your secret key",
-        "passphrase": "your passphrase"
+    "EXCHANGE": {		
+        "access_key": "你的access key",
+        "secret_key": "你的secret key",
+        "passphrase": "你的passphrase"
     },
-    "MYSQL": {
+    "MYSQL": {		
         "authorization": "disabled",
         "user_name": "root",
         "password": ""
     },
-    "MONGODB": {
+    "MONGODB": {	
         "authorization": "disabled",
         "user_name": "root",
         "password": ""
     },
-    "PUSH": {
+    "PUSH": {	
         "sendmail": "false",
         "dingtalk": "true",
         "twilio": "false"
     },
-    "SYNCHRONIZE": {
-        "overprice": {
-            "range": "0.1%"
-        }
-    },
-    "LOG": {
+    "LOG": {	
         "level": "debug",
         "handler": "stream"
     },
-    "MARKETS_SERVER": {
-        "platform": {
-            "huobi": {
-                "console": "false",
-                "database": "trade",
-                "collection": "hbdata",
-                "channels": [
-                ["market.BTC_NW.depth.step6"], ["market.BTC_CQ.kline.1min"]
-                ]
-            }
-        }
+    "DINGTALK": {	
+        "ding_talk_api": "你的钉钉api"
     },
-    "POSITION_SERVER": {
-        "platform": {
-            "okex": {
-                    "futures_usd": "false",
-                    "futures_usdt": "true",
-                    "delivery_date": "201225",
-                    "swap_usd": "false",
-                    "swap_usdt": "false",
-                    "spot": "false",
-                    "margin": "false"
-            }
-        }
+    "TWILIO": {		
+        "accountSID" : "你的accountSID",
+        "authToken" : "你的authToken",
+        "myNumber" : "你的手机号",
+        "twilio_Number" : "你的twilio number"
     },
-    "DINGTALK": {
-        "ding_talk_api": "https://oapi.dingtalk.com/robot/send?access_token=d3a36823cccca302e51a1c9e83dbd79d74b453"
-    },
-    "TWILIO": {
-        "accountSID" : "AC97a11fcd39061ad140f",
-        "authToken" : "3616b6ced82fa4aa559",
-        "myNumber" : "+8615312345678",
-        "twilio_Number" : "+12058958974"
-    },
-    "SENDMAIL": {
-        "from_addr" : "123456789@qq.com",
-        "password" : "xxeqsfqwcjgj",
-        "to_addr" : "iloveyou@icloud.com",
+    "SENDMAIL": {	
+        "from_addr" : "你的qq号码@qq.com",
+        "password" : "你的qq邮箱授权码",
+        "to_addr" : "你的qq号码@qq.com",	
         "smtp_server" : "smtp.qq.com",
         "port": 587
     }
 }
+```
+
+
+

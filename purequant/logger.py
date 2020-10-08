@@ -67,11 +67,14 @@ class __LOGGER:
         rotatingHandler.setFormatter(formatter)
 
         if config.handler == "time":
-            self.__logger.addHandler(time_rotating_file_handler)
+            if not  self.__logger.handlers:
+                self.__logger.addHandler(time_rotating_file_handler)
         elif config.handler == "file":
-            self.__logger.addHandler(rotatingHandler)
+            if not self.__logger.handlers:
+                self.__logger.addHandler(rotatingHandler)
         else:
-            self.__logger.addHandler(stream_handler)
+            if not self.__logger.handlers:
+                self.__logger.addHandler(stream_handler)
 
     def debug(self, msg=None):
         self.__initialize()

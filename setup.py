@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name="purequant",
-    version="0.1.28",
+    version="1.1.0",
     packages=[
         "purequant",
         "purequant/exchange/huobi",
@@ -19,6 +19,7 @@ setup(
         "purequant/example/plot_signal",
         "purequant/example/boll_breakthrough_strategy",
         "purequant/example/turtle_strategy",
+        "purequant/example/bitmex_simple_maker_strategy"
     ],
     platforms="any",
     description="数字货币程序化交易开源框架，助力中小投资者快速搭建程序化交易系统。",
@@ -52,5 +53,6 @@ setup(
         "purequant/example/plot_signal": ["*.json"],
         "purequant/example/boll_breakthrough_strategy": ["*.json"],
         "purequant/example/turtle_strategy": ["*.json"],
+        "purequant/example/bitmex_simple_maker_strategy": ["*.json"]
     },
 )
