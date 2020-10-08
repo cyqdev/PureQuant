@@ -8,10 +8,6 @@ import time
 import decimal
 import datetime
 
-def runforever(func):
-    while True:
-        func()
-
 def sleep(seconds):
     time.sleep(seconds)
 
