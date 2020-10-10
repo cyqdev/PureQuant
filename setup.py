@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name="purequant",
-    version="1.1.0",
+    version="1.1.1",
     packages=[
         "purequant",
         "purequant/exchange/huobi",
@@ -46,7 +46,8 @@ setup(
         "urllib3>=1.25.8",
         "websockets>=8.1",
         "concurrent-log-handler>=0.9.17",
-        "colorlog>=4.2.1"
+        "colorlog>=4.2.1",
+        "ccxt>=1.35.92"
     ],
     package_data={
         "purequant/example/double_moving_average_strategy": ["*.json"],
