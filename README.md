@@ -30,10 +30,7 @@ pip install purequant
 ```
 ProjectName
     |----- config.json
-    |----- strategy1.py
-    |----- strategy2.py
-    |----- ...
-    |----- logger
+    |----- strategy.py
 ```
 
 ## 有任何问题，欢迎联系
@@ -244,6 +241,31 @@ amount = position.amount()
 ```python
 price = position.price()
 ```
+
+注：
+
+1. 支持双向持仓信息查询。如果是单向持仓，使用原来的position.amount()、position.price()、position.direction()查询持仓信息。
+
+   如果是双向持仓，获取多头持仓数量与均价：
+
+   ```python
+   position.amount(mode="both", side="long")
+   position.price(mode="both", side="long") 
+   ```
+
+   获取空头持仓数量与均价：
+
+   ```python
+   position.amount(mode="both", side="short")
+   position.price(mode="both", side="short")
+   ```
+
+2. 币安合约支持双向持仓模式，在初始化交易所时传入参数即可：
+
+   ```python
+   exchange = BINANCEFUTURES(api_key, secret_key, instrument_id, leverage=10, position_side="both")
+   
+   ```
 
 ------
 
