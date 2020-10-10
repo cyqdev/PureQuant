@@ -335,6 +335,18 @@ market.close(0)  # 获取最远一根bar上的收盘价
 contract_value = market.contract_value()
 ```
 
+### 卖盘订单簿
+
+```python
+asks = market.asks()
+```
+
+### 买盘订单簿
+
+```python
+bids = market.bids()
+```
+
 ------
 
 
