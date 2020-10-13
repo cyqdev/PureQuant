@@ -1,4 +1,3 @@
-```json
 {
     "STATUS": {
         "first_run": "true"		
@@ -13,6 +12,15 @@
         "amplitude": "0.5%",				
         "time_cancellation": "true",		
         "seconds": 10						
+    },
+    "LOG": {
+        "level": "debug",
+        "handler": "stream"
+    },
+    "PUSH": {
+        "sendmail": "false",
+        "dingtalk": "true",
+        "twilio": "false"
     },
     "EXCHANGE": {		
         "access_key": "你的access key",
@@ -29,33 +37,23 @@
         "user_name": "root",
         "password": ""
     },
-    "PUSH": {	
-        "sendmail": "false",
-        "dingtalk": "true",
-        "twilio": "false"
-    },
-    "LOG": {	
-        "level": "debug",
-        "handler": "stream"
-    },
     "DINGTALK": {	
-        "ding_talk_api": "你的钉钉api"
+        "ding_talk_api": "sgdjdfk"
     },
     "TWILIO": {		
-        "accountSID" : "你的accountSID",
-        "authToken" : "你的authToken",
-        "myNumber" : "你的手机号",
-        "twilio_Number" : "你的twilio number"
+        "accountSID" : "335879",
+        "authToken" : "xhsgsjsjsjsjshd",
+        "myNumber" : "13777777777",
+        "twilio_Number" : "1314520"
     },
     "SENDMAIL": {	
-        "from_addr" : "你的qq号码@qq.com",
-        "password" : "你的qq邮箱授权码",
-        "to_addr" : "你的qq号码@qq.com",	
+        "from_addr" : "123456789@qq.com",
+        "password" : "asdfghjkl",
+        "to_addr" : "123456789@qq.com",
         "smtp_server" : "smtp.qq.com",
         "port": 587
     }
 }
-```
 
 
 

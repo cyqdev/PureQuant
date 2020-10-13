@@ -46,34 +46,6 @@ class __Config:
         # logger
         self.level = configures['LOG']['level']
         self.handler = configures['LOG']['handler']
-        # markets server
-        markets_server_list = []
-        for item in configures["MARKETS_SERVER"]["platform"]:
-            markets_server_list.append(item)
-        self.markets_server_platform = markets_server_list[0]
-        self.markets_channels_list = configures["MARKETS_SERVER"]["platform"][self.markets_server_platform]["channels"]
-        self.mongodb_database = configures["MARKETS_SERVER"]["platform"][self.markets_server_platform]["database"]
-        self.mongodb_collection = configures["MARKETS_SERVER"]["platform"][self.markets_server_platform]["collection"]
-        self.mongodb_console = configures["MARKETS_SERVER"]["platform"][self.markets_server_platform]["console"]
-        # position server
-        position_server_list = []
-        for item in configures["POSITION_SERVER"]["platform"]:
-            position_server_list.append(item)
-        self.position_server_platform = position_server_list[0]
-        if self.position_server_platform == "okex":
-            self.delivery_date = configures['POSITION_SERVER']["platform"][self.position_server_platform]['delivery_date']
-            self.okex_futures_usd = configures['POSITION_SERVER']["platform"][self.position_server_platform]['futures_usd']
-            self.okex_futures_usdt = configures['POSITION_SERVER']["platform"][self.position_server_platform]['futures_usdt']
-            self.okex_swap_usd = configures['POSITION_SERVER']["platform"][self.position_server_platform]['swap_usd']
-            self.okex_swap_usdt = configures['POSITION_SERVER']["platform"][self.position_server_platform]['swap_usdt']
-            self.okex_spot = configures['POSITION_SERVER']["platform"][self.position_server_platform]['spot']
-            self.okex_margin = configures['POSITION_SERVER']["platform"][self.position_server_platform]['margin']
-        if self.position_server_platform == "huobi":
-            self.huobi_futures = configures['POSITION_SERVER']["platform"][self.position_server_platform]['futures']
-            self.huobi_swap = configures['POSITION_SERVER']["platform"][self.position_server_platform]['swap']
-        # synchronize
-        overprice_range_str = configures["SYNCHRONIZE"]["overprice"]["range"]
-        self.overprice_range = float((overprice_range_str.split("%"))[0]) / 100   # 超价幅度，浮点数类型
         # first_run
         self.first_run = configures["STATUS"]["first_run"]
         # ASSISTANT
