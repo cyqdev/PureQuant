@@ -32,7 +32,6 @@ setup(
     ],
     install_requires=[
         "chardet>=3.0.4",
-        "certifi>=2020.4.5.1",
         "finplot>=1.2.1",
         "idna>=2.9",
         "mysql>=0.0.2",
