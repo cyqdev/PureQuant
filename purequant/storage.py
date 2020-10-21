@@ -12,6 +12,7 @@ from purequant import time
 from purequant.indicators import INDICATORS
 import pandas as pd
 from purequant.config import config
+from purequant.time import *
 
 
 class __Storage:
@@ -604,24 +605,27 @@ def merge_bar(csv_file_path, interval):
     将自定义csv数据源的1分钟k线数据合成为任意周期的 k线数据，返回列表类型的k线数据，并自动保存新合成的k线数据至csv文件
     :param csv_file_path: 文件路径
     :param interval: 要合成的k线周期，例如3分钟就传入3，1小时就传入60，一天就传入1440
-    :return: 列表类型的新合成的k线数据
+    :return: 返回列表类型的新合成的k线数据，其中时间戳为秒时间戳
     """
-    df = pd.read_csv(csv_file_path, index_col="timestamp")
-    df = df.set_index(pd.DatetimeIndex(pd.to_datetime(df.index)))
-    df = df.drop_duplicates(keep='last', inplace=False)
-    open = df['open'].resample("%dmin"%interval).first()
-    high = df['high'].resample("%dmin"%interval).max()
-    low = df["low"].resample("%dmin"%interval).min()
-    close = df["close"].resample("%dmin"%interval).last()
-    volume = df["volume"].resample("%dmin"%interval).sum()
+    df = pd.read_csv(csv_file_path, index_col="timestamp")  # 读取传入的原1分钟k线数据
+    df = df.set_index(pd.DatetimeIndex(pd.to_datetime(df.index)))   # 处理时间戳一列，因为使用resample来合成k线时对时间戳格式有要求
+    df = df.drop_duplicates(keep='last', inplace=False) # 对数据进行去重
+    open = df['open'].resample("%dmin"%interval).first()    # 将open一列合成，取第一个价格
+    high = df['high'].resample("%dmin"%interval).max()  # 合并high一列，取最大值，即最高价
+    low = df["low"].resample("%dmin"%interval).min()    # 合并low一列，取最小值，即最低价
+    close = df["close"].resample("%dmin"%interval).last()   # 合并close一列，取最后一个价格
+    volume = df["volume"].resample("%dmin"%interval).sum()  # 合并volume一列，取和
     try:
-        currency_volume = df["currency_volume"].resample("%dmin" % interval).sum()
+        currency_volume = df["currency_volume"].resample("%dmin" % interval).sum()  # 尝试合并currency_volume一列，如果失败则说明数据并不包含此列
         kline = pd.DataFrame(
             {"open": open, "high": high, "low": low, "close": close, "volume": volume, "currency_volume": currency_volume})
     except:
         kline = pd.DataFrame({"open": open, "high": high, "low": low, "close": close, "volume": volume})
-    if interval != 1:
-        kline.to_csv("{}min_{}".format(interval, csv_file_path))
-    data = kline.values.tolist()
+    kline.to_csv("{}min_{}".format(interval, csv_file_path))    # 保存新数据至csv文件
+    records = pd.read_csv("{}min_{}".format(interval, csv_file_path)) # 读取新文件，因为旧数据经处理后并不包含时间戳
+    for i in records['timestamp']:  # 处理时间戳成为秒时间戳
+        j = (datetime_str_to_ts(i))
+        records.replace(i, j, inplace=True)
+    data = records.values.tolist()  # 将新读取的数据转换为列表数据类型
     return data
 
