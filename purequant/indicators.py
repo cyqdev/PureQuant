@@ -2,8 +2,7 @@ import numpy as np
 import talib
 from purequant import time
 from purequant.config import config
-import pandas as pd
-import time
+
 
 class INDICATORS:
 
@@ -13,7 +12,7 @@ class INDICATORS:
         self.__time_frame = time_frame
         self.__last_time_stamp = 0
 
-    def ATR(self,length, kline=None):
+    def ATR(self, length, kline=None):
         """
         指数移动平均线
         :param length: 长度参数，如14获取的是14周期上的ATR值
@@ -458,31 +457,3 @@ class INDICATORS:
             volume_array[t] = item[5]
             t += 1
         return volume_array
-
-
-def MergeBar(csv_file_path, interval):
-    """
-    将自定义csv数据源的1分钟k线数据合成为任意周期的 k线数据，返回列表类型的k线数据，并自动保存新合成的k线数据至csv文件
-    :param csv_file_path: 文件路径
-    :param interval: 要合成的k线周期，例如3分钟就传入3，1小时就传入60，一天就传入1440
-    :return: 列表类型的新合成的k线数据
-    """
-    df = pd.read_csv(csv_file_path, index_col="timestamp")
-    df = df.set_index(pd.DatetimeIndex(pd.to_datetime(df.index)))
-    df = df.drop_duplicates(keep='last', inplace=False)
-    open = df['open'].resample("%dmin"%interval).first()
-    high = df['high'].resample("%dmin"%interval).max()
-    low = df["low"].resample("%dmin"%interval).min()
-    close = df["close"].resample("%dmin"%interval).last()
-    volume = df["volume"].resample("%dmin"%interval).sum()
-    currency_volume = df["currency_volume"].resample("%dmin"%interval).sum()
-    try:
-        kline = pd.DataFrame(
-            {"open": open, "high": high, "low": low, "close": close, "volume": volume, "currency_volume": currency_volume})
-    except:
-        kline = pd.DataFrame({"open": open, "high": high, "low": low, "close": close, "volume": volume})
-    if interval != 1:
-        kline.to_csv("{}min_{}".format(interval, csv_file_path))
-    data = kline.values.tolist()
-    return data
-

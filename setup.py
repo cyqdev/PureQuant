@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name="purequant",
-    version="1.1.3",
+    version="1.1.4",
     packages=[
         "purequant",
         "purequant/exchange/huobi",
