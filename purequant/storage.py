@@ -600,7 +600,7 @@ class __Storage:
 storage = __Storage()
 
 
-def merge_bar(csv_file_path, interval):
+def combine_kline(csv_file_path, interval):
     """
     将自定义csv数据源的1分钟k线数据合成为任意周期的 k线数据，返回列表类型的k线数据，并自动保存新合成的k线数据至csv文件
     :param csv_file_path: 文件路径
@@ -610,13 +610,13 @@ def merge_bar(csv_file_path, interval):
     df = pd.read_csv(csv_file_path, index_col="timestamp")  # 读取传入的原1分钟k线数据
     df = df.set_index(pd.DatetimeIndex(pd.to_datetime(df.index)))   # 处理时间戳一列，因为使用resample来合成k线时对时间戳格式有要求
     df = df.drop_duplicates(keep='last', inplace=False) # 对数据进行去重
-    open = df['open'].resample("%dmin"%interval).first()    # 将open一列合成，取第一个价格
-    high = df['high'].resample("%dmin"%interval).max()  # 合并high一列，取最大值，即最高价
-    low = df["low"].resample("%dmin"%interval).min()    # 合并low一列，取最小值，即最低价
-    close = df["close"].resample("%dmin"%interval).last()   # 合并close一列，取最后一个价格
-    volume = df["volume"].resample("%dmin"%interval).sum()  # 合并volume一列，取和
+    open = df['open'].resample("%dmin"%interval, label="right", closed="right").first()    # 将open一列合成，取第一个价格
+    high = df['high'].resample("%dmin"%interval, label="right", closed="right").max()  # 合并high一列，取最大值，即最高价
+    low = df["low"].resample("%dmin"%interval, label="right", closed="right").min()    # 合并low一列，取最小值，即最低价
+    close = df["close"].resample("%dmin"%interval, label="right", closed="right").last()   # 合并close一列，取最后一个价格
+    volume = df["volume"].resample("%dmin"%interval, label="right", closed="right").sum()  # 合并volume一列，取和
     try:
-        currency_volume = df["currency_volume"].resample("%dmin" % interval).sum()  # 尝试合并currency_volume一列，如果失败则说明数据并不包含此列
+        currency_volume = df["currency_volume"].resample("%dmin" % interval, label="right", closed="right").sum()  # 尝试合并currency_volume一列，如果失败则说明数据并不包含此列
         kline = pd.DataFrame(
             {"open": open, "high": high, "low": low, "close": close, "volume": volume, "currency_volume": currency_volume})
     except:
@@ -624,7 +624,11 @@ def merge_bar(csv_file_path, interval):
     kline.to_csv("{}min_{}".format(interval, csv_file_path))    # 保存新数据至csv文件
     records = pd.read_csv("{}min_{}".format(interval, csv_file_path)) # 读取新文件，因为旧数据经处理后并不包含时间戳
     for i in records['timestamp']:  # 处理时间戳成为秒时间戳
-        j = (datetime_str_to_ts(i))
+        try:
+            j = (datetime_str_to_ts(i))
+        except: # 转换为日线数据时对时间戳进行另外的处理
+            j = datetime_str_to_ts(
+                str(date_str_to_dt("{}{}{}".format(i.split("-")[0], i.split("-")[1], i.split("-")[2]))))
         records.replace(i, j, inplace=True)
     data = records.values.tolist()  # 将新读取的数据转换为列表数据类型
     return data
