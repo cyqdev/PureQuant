@@ -2,7 +2,7 @@ import ccxt
 from ccxt import *
 
 
-class EXCHANGE:
+class CCXTEXCHANGE:
 
     def __init__(self, platform, apikey, secret, symbol, password=None):
         """

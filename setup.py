@@ -8,18 +8,20 @@ except ImportError:
 
 setup(
     name="purequant",
-    version="1.2.0",
+    version="1.3.0",
     packages=[
         "purequant",
         "purequant/exchange/huobi",
         "purequant/exchange/okex",
         "purequant/exchange/binance",
         "purequant/exchange/bitmex",
+        "purequant/exchange/bitcoke",
         "purequant/example/double_moving_average_strategy",
         "purequant/example/plot_signal",
         "purequant/example/boll_breakthrough_strategy",
         "purequant/example/turtle_strategy",
         "purequant/example/bitmex_simple_maker_strategy"
+        "purequant/trade",
     ],
     platforms="any",
     description="数字货币程序化交易开源框架，助力中小投资者快速搭建程序化交易系统。",

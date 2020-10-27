@@ -6,7 +6,7 @@
 """
 
 import asyncio
-from purequant.bitmexws import BITMEXWS
+from trade.bitmexws import BITMEXWS
 from purequant.config import config
 from purequant.logger import logger
 from purequant.time import sleep
