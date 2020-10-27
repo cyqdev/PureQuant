@@ -85,19 +85,24 @@ class BITCOKE:
                 }
             }
         else:
+            long_amount = 0
+            long_price = 0
+            short_amount = 0
+            short_price = 0
             receipt = self.__bitcoke.get_position()
             for item in receipt['result']:
                 if item['currency'] == self.__currency and item['symbol'] == self.__symbol:
                     if item['side'] == "Long":
                         long_amount = item['qty']
                         long_price = item['price']
-                        if long_amount > 0:
-                            return {'direction': "long", 'amount': long_amount, 'price': long_price}
-                    elif item['side'] == "Short":
+                    if item['side'] == "Short":
                         short_amount = item['qty']
                         short_price = item['price']
-                        if short_amount > 0:
-                            return {'direction': "short", 'amount': short_amount, 'price': short_price}
+
+                    if short_amount > 0:
+                        return {'direction': "short", 'amount': short_amount, 'price': short_price}
+                    elif long_amount > 0:
+                        return {'direction': "long", 'amount': long_amount, 'price': long_price}
                     else:
                         return {'direction': "none", 'amount': 0, 'price': 0}
 
@@ -111,7 +116,7 @@ class BITCOKE:
         receipt = self.__bitcoke.get_kline(self.__symbol, time_frame)
         kline = []
         for item in receipt['result']:
-            kline.append([item['keyTime'], item['open'], item['high'], item['low'], item['close'], item['volume']])
+            kline.append([item['keyTime'].replace("+0000", "z"), item['open'], item['high'], item['low'], item['close'], item['volume']])
         return kline
 
     def get_ticker(self):
