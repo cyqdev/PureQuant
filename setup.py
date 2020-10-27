@@ -20,7 +20,7 @@ setup(
         "purequant/example/plot_signal",
         "purequant/example/boll_breakthrough_strategy",
         "purequant/example/turtle_strategy",
-        "purequant/example/bitmex_simple_maker_strategy"
+        "purequant/example/bitmex_simple_maker_strategy",
         "purequant/trade",
     ],
     platforms="any",
