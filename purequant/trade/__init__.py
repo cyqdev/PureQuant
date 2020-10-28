@@ -11,3 +11,4 @@ from purequant.trade.bitmex import BITMEX
 from purequant.trade.bitmexws import BITMEXWS
 from purequant.trade.ccxt_exchanges import CCXTEXCHANGE
 from purequant.trade.bitcoke import BITCOKE
+from purequant.trade.mxc import MXC
