@@ -14,7 +14,7 @@ from purequant.exceptions import *
 
 class OKEXFUTURES:
 
-    def __init__(self, access_key, secret_key, passphrase, instrument_id, leverage=None):
+    def __init__(self, access_key, secret_key, passphrase, instrument_id, margin_mode=None, leverage=None):
         """
         okex交割合约，初始化时会自动设置成全仓模式，可以传入参数设定开仓杠杆倍数。
         设置合约币种账户模式时，注意：当前有仓位或者有挂单时禁止切换账户模式。
@@ -30,14 +30,34 @@ class OKEXFUTURES:
         self.__instrument_id = instrument_id
         self.__okex_futures = okexfutures.FutureAPI(self.__access_key, self.__secret_key, self.__passphrase)
         self.__leverage = leverage or 20
-        try:
-            self.__okex_futures.set_margin_mode(underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1],
-                                                margin_mode="crossed")
-            self.__okex_futures.set_leverage(leverage=self.__leverage,
-                                             underlying=self.__instrument_id.split("-")[0] + "-" +
-                                                        self.__instrument_id.split("-")[1])  # 设置账户模式为全仓模式后再设置杠杆倍数
-        except Exception as e:
-            print("OKEX交割合约设置全仓模式失败！错误：{}".format(str(e)))
+        if margin_mode == "fixed":
+            try:
+                self.__okex_futures.set_margin_mode(underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1],
+                                                    margin_mode="fixed")    # 设置账户模式为逐仓模式
+                self.__okex_futures.set_leverage(leverage=self.__leverage,
+                                                 underlying=self.__instrument_id.split("-")[0] + "-" +
+                                                            self.__instrument_id.split("-")[1],
+                                                 instrument_id=self.__instrument_id,
+                                                 direction="long")  # 设置做多方向杠杆倍数
+                self.__okex_futures.set_leverage(leverage=self.__leverage,
+                                                 underlying=self.__instrument_id.split("-")[0] + "-" +
+                                                            self.__instrument_id.split("-")[1],
+                                                 instrument_id=self.__instrument_id,
+                                                 direction="short")  # 设置做空方向杠杆倍数
+            except Exception as e:
+                pass
+                # print("OKEX交割合约设置逐仓模式失败！错误：{}".format(str(e)))
+        else:
+            try:
+                self.__okex_futures.set_margin_mode(underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1],
+                                                    margin_mode="crossed")
+                self.__okex_futures.set_leverage(leverage=self.__leverage,
+                                                 underlying=self.__instrument_id.split("-")[0] + "-" +
+                                                            self.__instrument_id.split("-")[1])  # 设置账户模式为全仓模式后再设置杠杆倍数
+            except Exception as e:
+                pass
+                # print("OKEX交割合约设置全仓模式失败！错误：{}".format(str(e)))
+
 
     def get_single_equity(self, symbol):
         """

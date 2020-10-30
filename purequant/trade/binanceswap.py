@@ -14,7 +14,7 @@ from purequant.exceptions import *
 
 class BINANCESWAP:
 
-    def __init__(self, access_key, secret_key, instrument_id, leverage=None, position_side=None):
+    def __init__(self, access_key, secret_key, instrument_id, margin_mode=None, leverage=None, position_side=None):
         """
         初始化
         :param access_key: api_key
@@ -36,7 +36,10 @@ class BINANCESWAP:
             # 设置所有symbol合约上的持仓模式为单向持仓模式
             self.__binance_swap.set_side_mode(dualSidePosition="false")
         # 设置指定symbol合约上的保证金模式为全仓模式
-        self.__binance_swap.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
+        if margin_mode == "fixed":
+            self.__binance_swap.set_margin_mode(symbol=self.__instrument_id, marginType="ISOLATED")
+        else:
+            self.__binance_swap.set_margin_mode(symbol=self.__instrument_id, marginType="CROSSED")
         self.__binance_swap.set_leverage(self.__instrument_id, self.__leverage)  # 设置杠杆倍数
 
     def get_single_equity(self, currency):

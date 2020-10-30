@@ -12,7 +12,7 @@ import time
 
 class BITCOKE:
 
-    def __init__(self, access_key, secret_key, currency, instrument_id, leverage=None, position_side=None):
+    def __init__(self, access_key, secret_key, currency, instrument_id, margin_mode=None, leverage=None, position_side=None):
         """
         access_key: api key
         secret_key: secret key
@@ -30,7 +30,11 @@ class BITCOKE:
             self.__bitcoke.switch_pos_side(currency, True)
         else:
             self.__bitcoke.switch_pos_side(currency, False)
-        self.__bitcoke.switch_to_cross(currency)
+
+        if margin_mode == "fixed":
+            pass
+        else:
+            self.__bitcoke.switch_to_cross(currency)
         self.__bitcoke.change_pos_leverage(currency, symbol=self.__symbol, leverage=self.__leverage)
 
     def get_single_equity(self, currency):

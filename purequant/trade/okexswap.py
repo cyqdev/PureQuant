@@ -14,7 +14,7 @@ from purequant.exceptions import *
 
 class OKEXSWAP:
 
-    def __init__(self, access_key, secret_key, passphrase, instrument_id, leverage=None):
+    def __init__(self, access_key, secret_key, passphrase, instrument_id, margin_mode=None, leverage=None):
         """
         okex永续合约
         :param access_key:
@@ -29,10 +29,20 @@ class OKEXSWAP:
         self.__instrument_id = instrument_id
         self.__okex_swap = okexswap.SwapAPI(self.__access_key, self.__secret_key, self.__passphrase)
         self.__leverage = leverage or 20
-        try:
-            self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=3)
-        except Exception as e:
-            print("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成全仓模式！错误：{}".format(str(e)))
+        if margin_mode == "fixed":
+            try:
+                self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=1)
+                self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=2)
+            except Exception as e:
+                pass
+            # print("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成逐仓模式！错误：{}".format(str(e)))
+        else:
+            try:
+                self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=3)
+            except Exception as e:
+                pass
+                # print("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成全仓模式！错误：{}".format(str(e)))
+
 
     def get_single_equity(self, instrument_id):
         """
