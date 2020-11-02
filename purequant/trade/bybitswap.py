@@ -85,7 +85,7 @@ class BYBITSWAP:
     def get_order_info(self, order_id):
         result = self.__bybit.get_realtime_order(self.__symbol, order_id)
         action = None
-        if result['result']['side'] == "Buy" and result['result']['reduce_only'] == Flase:
+        if result['result']['side'] == "Buy" and result['result']['reduce_only'] == False:
             action = "买入开多"
         elif result['result']['side'] == "Sell" and result['result']['reduce_only'] == True:
             action = "卖出平多"
@@ -129,7 +129,7 @@ class BYBITSWAP:
             result = self.__bybit.create_order(symbol=self.__symbol, side="Buy", price=price, qty=size, order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=False, close_on_trigger=False)
             if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
-                raise SendOrderError(result['result']['ret_msg'])
+                raise SendOrderError(result['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -207,7 +207,7 @@ class BYBITSWAP:
                                                order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=True, close_on_trigger=True)
             if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
-                raise SendOrderError(result['result']['ret_msg'])
+                raise SendOrderError(result['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -284,7 +284,7 @@ class BYBITSWAP:
             result = self.__bybit.create_order(symbol=self.__symbol, side="Sell", price=price, qty=size, order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=True, close_on_trigger=True)
             if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
-                raise SendOrderError(result['result']['ret_msg'])
+                raise SendOrderError(result['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -362,7 +362,7 @@ class BYBITSWAP:
                                                order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=False, close_on_trigger=False)
             if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
-                raise SendOrderError(result['result']['ret_msg'])
+                raise SendOrderError(result['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}

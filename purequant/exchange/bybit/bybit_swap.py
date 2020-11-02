@@ -23,12 +23,7 @@ class BybitSwap:
         postdata = urllib.parse.urlencode(params)   # 将字典里面所有的键值转化为query-string格式（key=value&key=value），并且将中文转码
         try:
             response = requests.get(url+"?"+postdata, headers=headers, timeout=TIMEOUT)
-            if response.status_code == 200:
-                if response.json()['ret_code'] == 0:
-                    return response.json()
-                else:
-                    return {"result": "error_code:{}, error_msg:{}".format(response.json()['ret_code'],
-                                                                           response.json()['ret_msg'])}
+            return response.json()
         except Exception as e:
             return {"status": "fail", "error_message": "%s" % e}
 
@@ -40,11 +35,7 @@ class BybitSwap:
         post_data = val + "&sign=" + signature
         try:
             response = requests.post(url + "?" + post_data, timeout=TIMEOUT)
-            if response.status_code == 200:
-                if response.json()['ret_code'] == 0:
-                    return response.json()
-                else:
-                    return {"result": "error_code:{}, error_msg:{}".format(response.json()['ret_code'], response.json()['ret_msg'])}
+            return response.json()
         except Exception as e:
             return {"status": "fail", "error_message": "%s" % e}
 
@@ -57,11 +48,7 @@ class BybitSwap:
         post_data = val + "&sign=" + signature
         try:
             response = requests.get(url + "?" + post_data, timeout=TIMEOUT)
-            if response.status_code == 200:
-                if response.json()['ret_code'] == 0:
-                    return response.json()
-                else:
-                    return {"result": "error_code:{}, error_msg:{}".format(response.json()['ret_code'], response.json()['ret_msg'])}
+            return response.json()
         except Exception as e:
             return {"status": "fail", "error_message": "%s" % e}
 

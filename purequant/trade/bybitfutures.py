@@ -34,11 +34,13 @@ class BYBITFUTURES:
             return response
 
     def get_position(self):
-        result = self.__bybit.get_position(self.__symbol)
+        result = self.__bybit.get_position(self.__symbol)['result']
         if result['side'] == "Buy":
             return {'direction': "long", 'amount': result['size'], 'price': result['entry_price']}
         elif result['side'] == "Sell":
             return {'direction': "short", 'amount': result['size'], 'price': result['entry_price']}
+        elif result['side'] == "None":
+            return {'direction': "none", 'amount': 0, 'price': 0}
 
     def get_contract_value(self):
         return 1
@@ -100,7 +102,7 @@ class BYBITFUTURES:
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Buy", price=price, qty=size, order_type=order_type, time_in_force=time_in_force)
             if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
-                raise SendOrderError(result['result']['ret_msg'])
+                raise SendOrderError(result['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
@@ -179,7 +181,7 @@ class BYBITFUTURES:
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Sell", price=price, qty=size, order_type=order_type, time_in_force=time_in_force)
             if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
-                raise SendOrderError(result['result']['ret_msg'])
+                raise SendOrderError(result['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
