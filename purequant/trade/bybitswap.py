@@ -39,13 +39,13 @@ class BYBITSWAP:
             long_price = 0
             short_amount = 0
             short_price = 0
-            result = self.__bybit.get_position(self.__symbol)
-            if result['side'] == "Buy":
-                long_amount = result['size']
-                long_price = result['entry_price']
-            if result['side'] == "Sell":
-                short_amount = result['size']
-                short_price = result['entry_price']
+            result = self.__bybit.get_position(self.__symbol)['result']
+            if result[0]['side'] == "Buy":
+                long_amount = result[0]['size']
+                long_price = result[0]['entry_price']
+            if result[1]['side'] == "Sell":
+                short_amount = result[1]['size']
+                short_price = result[1]['entry_price']
             return {
                 "long": {
                     "price": long_price,
@@ -57,11 +57,11 @@ class BYBITSWAP:
                 }
             }
         else:
-            result = self.__bybit.get_position(self.__symbol)
-            if result['side'] == "Buy":
-                return {'direction': "long", 'amount': result['size'], 'price': result['entry_price']}
-            elif result['side'] == "Sell":
-                return {'direction': "short", 'amount': result['size'], 'price': result['entry_price']}
+            result = self.__bybit.get_position(self.__symbol)['result']
+            if result[0]['side'] == "Buy":
+                return {'direction': "long", 'amount': result[0]['size'], 'price': result[0]['entry_price']}
+            elif result[1]['side'] == "Sell":
+                return {'direction': "short", 'amount': result[1]['size'], 'price': result[1]['entry_price']}
 
     def get_contract_value(self):
         """返回多少美元"""
@@ -72,7 +72,7 @@ class BYBITSWAP:
 
     def get_ticker(self):
         response = self.__bybit.get_ticker(self.__symbol)
-        receipt = {'symbol': self.__symbol, 'last': response['result']['last_price']}
+        receipt = {'symbol': self.__symbol, 'last': response['result'][0]['last_price']}
         return receipt
 
     def revoke_order(self, order_id):
@@ -85,15 +85,19 @@ class BYBITSWAP:
     def get_order_info(self, order_id):
         result = self.__bybit.get_realtime_order(self.__symbol, order_id)
         action = None
-        if result['result']['side'] == "Buy":
-            action = "买入"
-        elif result['result']['side'] == "Sell":
-            action = "卖出"
+        if result['result']['side'] == "Buy" and result['result']['reduce_only'] == Flase:
+            action = "买入开多"
+        elif result['result']['side'] == "Sell" and result['result']['reduce_only'] == True:
+            action = "卖出平多"
+        elif result['result']['side'] == "Buy" and result['result']['reduce_only'] == True:
+            action = "买入平空"
+        elif result['result']['side'] == "Sell" and result['result']['reduce_only'] == False:
+            action = "卖出开空"
 
         if result['result']['order_status'] == "Filled":
             dict = {"交易所": "BYBIT正向合约", "币对": self.__symbol, "方向": action, "订单状态": "完全成交",
                     "委托价格": result['result']['price'],
-                    "已成交数量": int(result['result']['cum_exec_qty']),
+                    "已成交数量": float(result['result']['cum_exec_qty']),
                     "成交金额": result["result"]['cum_exec_value']}
             return dict
         elif result['result']['order_status'] == "Rejected":
@@ -102,7 +106,7 @@ class BYBITSWAP:
         elif result['result']['order_status'] == "Cancelled":
             dict = {"交易所": "BYBIT正向合约", "币对": self.__symbol, "方向": action, "订单状态": "撤单成功",
                     "委托价格": result['result']['price'],
-                    "已成交数量": int(result['result']['cum_exec_qty']),
+                    "已成交数量": float(result['result']['cum_exec_qty']),
                     "成交金额": result["result"]['cum_exec_value']}
             return dict
         elif result['result']['order_status'] == "New":
@@ -111,11 +115,11 @@ class BYBITSWAP:
         elif result['result']['order_status'] == "PartiallyFilled":
             dict = {"交易所": "BYBIT正向合约", "币对": self.__symbol, "方向": action, "订单状态": "部分成交",
                     "委托价格": result['result']['price'],
-                    "已成交数量": int(result['result']['cum_exec_qty']),
+                    "已成交数量": float(result['result']['cum_exec_qty']),
                     "成交金额": result["result"]['cum_exec_value']}
             return dict
         elif result['result']['order_status'] == "Created ":
-            dict = {"交易所": "BYBIT正向合约", "币对": self.__symbol, "方向": action, "订单状态": "等待"}
+            dict = {"交易所": "BYBIT正向合约", "币对": self.__symbol, "方向": action, "订单状态": "等待成交"}
             return dict
 
     def buy(self, price, size, order_type=None, time_in_force=None):
@@ -124,7 +128,7 @@ class BYBITSWAP:
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Buy", price=price, qty=size, order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=False, close_on_trigger=False)
-            if result['result']['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
+            if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
                 raise SendOrderError(result['result']['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
@@ -202,7 +206,7 @@ class BYBITSWAP:
             result = self.__bybit.create_order(symbol=self.__symbol, side="Buy", price=price, qty=size,
                                                order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=True, close_on_trigger=True)
-            if result['result']['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
+            if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
                 raise SendOrderError(result['result']['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
@@ -215,7 +219,7 @@ class BYBITSWAP:
                             self.revoke_order(order_id=result['result']['order_id'])
                             state = self.get_order_info(order_id=result['result']['order_id'])
                             if state['订单状态'] == "撤单成功":
-                                return self.buy(float(self.get_ticker()['last']) * (1 + config.reissue_order),
+                                return self.buytocover(float(self.get_ticker()['last']) * (1 + config.reissue_order),
                                                 size - state["已成交数量"])
                         except:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
@@ -227,7 +231,7 @@ class BYBITSWAP:
                             self.revoke_order(order_id=result['result']['order_id'])
                             state = self.get_order_info(order_id=result['result']['order_id'])
                             if state['订单状态'] == "撤单成功":
-                                return self.buy(float(self.get_ticker()['last']) * (1 + config.reissue_order),
+                                return self.buytocover(float(self.get_ticker()['last']) * (1 + config.reissue_order),
                                                 size - state["已成交数量"])
                         except:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
@@ -241,7 +245,7 @@ class BYBITSWAP:
                         self.revoke_order(order_id=result['result']['order_id'])
                         state = self.get_order_info(order_id=result['result']['order_id'])
                         if state['订单状态'] == "撤单成功":
-                            return self.buy(float(self.get_ticker()['last']) * (1 + config.reissue_order),
+                            return self.buytocover(float(self.get_ticker()['last']) * (1 + config.reissue_order),
                                             size - state["已成交数量"])
                     except:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
@@ -252,7 +256,7 @@ class BYBITSWAP:
                         self.revoke_order(order_id=result['result']['order_id'])
                         state = self.get_order_info(order_id=result['result']['order_id'])
                         if state['订单状态'] == "撤单成功":
-                            return self.buy(float(self.get_ticker()['last']) * (1 + config.reissue_order),
+                            return self.buytocover(float(self.get_ticker()['last']) * (1 + config.reissue_order),
                                             size - state["已成交数量"])
                     except:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
@@ -279,7 +283,7 @@ class BYBITSWAP:
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Sell", price=price, qty=size, order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=True, close_on_trigger=True)
-            if result['result']['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
+            if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
                 raise SendOrderError(result['result']['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
@@ -357,7 +361,7 @@ class BYBITSWAP:
             result = self.__bybit.create_order(symbol=self.__symbol, side="Sell", price=price, qty=size,
                                                order_type=order_type, time_in_force=time_in_force,
                                                reduce_only=False, close_on_trigger=False)
-            if result['result']['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
+            if result['ret_msg'] != "OK":  # 如果下单失败就抛出异常，提示错误信息。
                 raise SendOrderError(result['result']['ret_msg'])
             order_info = self.get_order_info(order_id=result['result']['order_id'])  # 下单后查询一次订单状态
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
@@ -370,7 +374,7 @@ class BYBITSWAP:
                             self.revoke_order(order_id=result['result']['order_id'])
                             state = self.get_order_info(order_id=result['result']['order_id'])
                             if state['订单状态'] == "撤单成功":
-                                return self.sell(float(self.get_ticker()['last']) * (1 - config.reissue_order),
+                                return self.sellshort(float(self.get_ticker()['last']) * (1 - config.reissue_order),
                                                  size - state["已成交数量"])
                         except:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
@@ -382,7 +386,7 @@ class BYBITSWAP:
                             self.revoke_order(order_id=result['result']['order_id'])
                             state = self.get_order_info(order_id=result['result']['order_id'])
                             if state['订单状态'] == "撤单成功":
-                                return self.sell(float(self.get_ticker()['last']) * (1 - config.reissue_order),
+                                return self.sellshort(float(self.get_ticker()['last']) * (1 - config.reissue_order),
                                                  size - state["已成交数量"])
                         except:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
@@ -396,7 +400,7 @@ class BYBITSWAP:
                         self.revoke_order(order_id=result['result']['order_id'])
                         state = self.get_order_info(order_id=result['result']['order_id'])
                         if state['订单状态'] == "撤单成功":
-                            return self.sell(float(self.get_ticker()['last']) * (1 - config.reissue_order),
+                            return self.sellshort(float(self.get_ticker()['last']) * (1 - config.reissue_order),
                                              size - state["已成交数量"])
                     except:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
@@ -407,7 +411,7 @@ class BYBITSWAP:
                         self.revoke_order(order_id=result['result']['order_id'])
                         state = self.get_order_info(order_id=result['result']['order_id'])
                         if state['订单状态'] == "撤单成功":
-                            return self.sell(float(self.get_ticker()['last']) * (1 - config.reissue_order),
+                            return self.sellshort(float(self.get_ticker()['last']) * (1 - config.reissue_order),
                                              size - state["已成交数量"])
                     except:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
