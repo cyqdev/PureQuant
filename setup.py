@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name="purequant",
-    version="1.4.0",
+    version="1.4.1",
     packages=[
         "purequant",
         "purequant/exchange/huobi",
@@ -17,6 +17,7 @@ setup(
         "purequant/exchange/bitmex",
         "purequant/exchange/bitcoke",
         "purequant/exchange/mxc",
+        "purequant/exchange/bybit",
         "purequant/example/double_moving_average_strategy",
         "purequant/example/plot_signal",
         "purequant/example/boll_breakthrough_strategy",
