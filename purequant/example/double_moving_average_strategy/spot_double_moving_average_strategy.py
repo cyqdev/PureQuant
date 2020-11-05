@@ -20,34 +20,31 @@ from purequant.config import config
 class Strategy:
 
     def __init__(self, instrument_id, time_frame, fast_length, slow_length, long_stop, short_stop, start_asset, precision):
-        try:
-            print("{} {} 双均线多空策略已启动！".format(get_localtime(), instrument_id))   # 程序启动时打印提示信息
-            config.loads('config.json')  # 载入配置文件
-            self.instrument_id = instrument_id  # 合约ID
-            self.time_frame = time_frame  # k线周期
-            self.precision = precision  # 精度，即币对的最小交易数量
-            self.exchange = OKEXSPOT(config.access_key, config.secret_key, config.passphrase, self.instrument_id)  # 初始化交易所
-            self.position = POSITION(self.exchange, self.instrument_id, self.time_frame)  # 初始化potion
-            self.market = MARKET(self.exchange, self.instrument_id, self.time_frame)  # 初始化market
-            self.indicators = INDICATORS(self.exchange, self.instrument_id, self.time_frame)    # 初始化indicators
-            # 在第一次运行程序时，将初始资金数据保存至数据库中
-            self.database = "回测"    # 回测时必须为"回测"
-            self.datasheet = self.instrument_id.split("-")[0].lower() + "_" + time_frame
-            if config.first_run == "true":
-                storage.mysql_save_strategy_run_info(self.database, self.datasheet, get_localtime(),
-                                                "none", 0, 0, 0, 0, "none", 0, 0, 0, start_asset)
-            # 读取数据库中保存的总资金数据
-            self.total_asset = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-1]
-            self.total_profit = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-2]  # 策略总盈亏
-            self.counter = 0  # 计数器
-            self.fast_length = fast_length  # 短周期均线长度
-            self.slow_length = slow_length  # 长周期均线长度
-            self.long_stop = long_stop   # 多单止损幅度
-            self.short_stop = short_stop    # 空单止损幅度
-            self.hold_price = 0     # 注意：okex的现货没有获取持仓均价的接口，故需实盘时需要手动记录入场价格。此种写法对于不同的交易所是通用的。
-                                    # 此种写法，若策略重启，持仓价格会回归0
-        except:
-            logger.warning()
+        config.loads('config.json')  # 载入配置文件
+        self.instrument_id = instrument_id  # 合约ID
+        self.time_frame = time_frame  # k线周期
+        self.precision = precision  # 精度，即币对的最小交易数量
+        self.exchange = OKEXSPOT(config.access_key, config.secret_key, config.passphrase, self.instrument_id)  # 初始化交易所
+        self.position = POSITION(self.exchange, self.instrument_id, self.time_frame)  # 初始化potion
+        self.market = MARKET(self.exchange, self.instrument_id, self.time_frame)  # 初始化market
+        self.indicators = INDICATORS(self.exchange, self.instrument_id, self.time_frame)    # 初始化indicators
+        # 在第一次运行程序时，将初始资金数据保存至数据库中
+        self.database = "回测"    # 回测时必须为"回测"
+        self.datasheet = self.instrument_id.split("-")[0].lower() + "_" + time_frame
+        if config.first_run == "true":
+            storage.mysql_save_strategy_run_info(self.database, self.datasheet, get_localtime(),
+                                            "none", 0, 0, 0, 0, "none", 0, 0, 0, start_asset)
+        # 读取数据库中保存的总资金数据
+        self.total_asset = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-1]
+        self.total_profit = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-2]  # 策略总盈亏
+        self.counter = 0  # 计数器
+        self.fast_length = fast_length  # 短周期均线长度
+        self.slow_length = slow_length  # 长周期均线长度
+        self.long_stop = long_stop   # 多单止损幅度
+        self.short_stop = short_stop    # 空单止损幅度
+        self.hold_price = 0     # 注意：okex的现货没有获取持仓均价的接口，故需实盘时需要手动记录入场价格。此种写法对于不同的交易所是通用的。
+                                # 此种写法，若策略重启，持仓价格会回归0
+        print("{} {} 双均线多空策略已启动！".format(get_localtime(), instrument_id))  # 程序启动时打印提示信息
 
     def begin_trade(self, kline=None):
         try:
@@ -93,7 +90,7 @@ class Strategy:
                     self.total_profit += profit
                     self.total_asset += profit
                     info = self.exchange.sell(price, amount)
-                    push("此次盈亏：{} 当前总资金：{}".format(profit, self.total_asset) + info)
+                    push("此次盈亏：{} 当前总资金：{}".format(profit, self.total_asset) + str(info))
                     self.hold_price = 0  # 平多后记录持仓价格为0
                     storage.mysql_save_strategy_run_info(self.database, self.datasheet, timestamp,
                                                     "卖出止损", price, amount, amount * price, 0, "none", 0,

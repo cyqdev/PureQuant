@@ -20,7 +20,6 @@ from purequant.storage import storage
 class Strategy:
 
     def __init__(self, instrument_id, time_frame, start_asset):     # 策略初始化时需传入合约id、k线周期、初始资金参数
-        print("{} {} 海龟交易策略已启动！".format(get_localtime(), instrument_id))    # 程序启动时打印提示信息
         config.loads("config.json")     # 载入配置文件
         self.instrument_id = instrument_id  # 合约id
         self.time_frame = time_frame    # k线周期
@@ -46,6 +45,7 @@ class Strategy:
         self.PreBreakoutFailure = False  # 前一次是否突破失败
         self.CurrentEntries = 0  # 当前持仓的开仓次数
         self.counter = 0    # 计数器，用以控制单根bar最大交易次数
+        print("{} {} 海龟交易策略已启动！".format(get_localtime(), instrument_id))  # 程序启动时打印提示信息
 
     def begin_trade(self, kline=None):  # 实盘时从交易所实时获取k线数据，回测时传入自定义的kline
         try:

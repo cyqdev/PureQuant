@@ -23,34 +23,31 @@ class Strategy:
     """布林强盗策略"""
 
     def __init__(self, instrument_id, time_frame, bollinger_lengths, filter_length, start_asset):
-        try:
-            # 策略启动时控制台输出提示信息
-            print("{} {} 布林强盗突破策略已启动！".format(get_localtime(), instrument_id))   # 程序启动时打印提示信息
-            config.loads("config.json")  # 载入配置文件
-            # 初始化
-            self.instrument_id = instrument_id  # 合约ID
-            self.time_frame = time_frame    # k线周期
-            self.exchange = OKEXFUTURES(config.access_key, config.secret_key, config.passphrase, self.instrument_id)  # 交易所
-            self.market = MARKET(self.exchange, self.instrument_id, self.time_frame)    # 行情
-            self.position = POSITION(self.exchange, self.instrument_id, self.time_frame)   # 持仓
-            self.indicators = INDICATORS(self.exchange, self.instrument_id, self.time_frame)    # 指标
-            # 在第一次运行程序时，将初始资金、总盈亏等数据保存至数据库中
-            self.database = "回测"  # 数据库，回测时必须为"回测"
-            self.datasheet = self.instrument_id.split("-")[0].lower() + "_" + time_frame    # 数据表
-            if config.first_run == "true":
-                storage.mysql_save_strategy_run_info(self.database, self.datasheet, get_localtime(),
-                                                     "none", 0, 0, 0, 0, "none", 0, 0, 0, start_asset)
-            # 读取数据库中保存的总资金数据
-            self.total_asset = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-1]
-            self.total_profit = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-2]  # 策略总盈亏
-            # 策略参数
-            self.contract_value = self.market.contract_value()  # 合约面值
-            self.counter = 0  # 计数器
-            self.bollinger_lengths = bollinger_lengths  # 布林通道参数
-            self.filter_length = filter_length  # 过滤器参数
-            self.out_day = 50   # 自适应出场ma的初始值为50,开仓后赋值为布林通道参数的值
-        except:
-            logger.warning()
+        config.loads("config.json")  # 载入配置文件
+        # 初始化
+        self.instrument_id = instrument_id  # 合约ID
+        self.time_frame = time_frame    # k线周期
+        self.exchange = OKEXFUTURES(config.access_key, config.secret_key, config.passphrase, self.instrument_id)  # 交易所
+        self.market = MARKET(self.exchange, self.instrument_id, self.time_frame)    # 行情
+        self.position = POSITION(self.exchange, self.instrument_id, self.time_frame)   # 持仓
+        self.indicators = INDICATORS(self.exchange, self.instrument_id, self.time_frame)    # 指标
+        # 在第一次运行程序时，将初始资金、总盈亏等数据保存至数据库中
+        self.database = "回测"  # 数据库，回测时必须为"回测"
+        self.datasheet = self.instrument_id.split("-")[0].lower() + "_" + time_frame    # 数据表
+        if config.first_run == "true":
+            storage.mysql_save_strategy_run_info(self.database, self.datasheet, get_localtime(),
+                                                 "none", 0, 0, 0, 0, "none", 0, 0, 0, start_asset)
+        # 读取数据库中保存的总资金数据
+        self.total_asset = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-1]
+        self.total_profit = storage.read_mysql_datas(0, self.database, self.datasheet, "总资金", ">")[-1][-2]  # 策略总盈亏
+        # 策略参数
+        self.contract_value = self.market.contract_value()  # 合约面值
+        self.counter = 0  # 计数器
+        self.bollinger_lengths = bollinger_lengths  # 布林通道参数
+        self.filter_length = filter_length  # 过滤器参数
+        self.out_day = 50   # 自适应出场ma的初始值为50,开仓后赋值为布林通道参数的值
+        # 策略启动时控制台输出提示信息
+        print("策略初始化成功！{} {} 布林强盗突破策略已启动！".format(get_localtime(), instrument_id))  # 程序启动时打印提示信息
 
     def begin_trade(self, kline=None):
         try:    # 异常处理
