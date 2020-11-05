@@ -10,7 +10,7 @@ import time
 from purequant.exchange.okex import futures_api as okexfutures
 from purequant.config import config
 from purequant.exceptions import *
-
+from purequant.logger import logger
 
 class OKEXFUTURES:
 
@@ -45,8 +45,7 @@ class OKEXFUTURES:
                                                  instrument_id=self.__instrument_id,
                                                  direction="short")  # 设置做空方向杠杆倍数
             except Exception as e:
-                pass
-                # print("OKEX交割合约设置逐仓模式失败！错误：{}".format(str(e)))
+                logger.error("OKEX交割合约设置逐仓模式失败！错误：{}".format(str(e)))
         else:
             try:
                 self.__okex_futures.set_margin_mode(underlying=self.__instrument_id.split("-")[0] + "-" + self.__instrument_id.split("-")[1],
@@ -55,8 +54,7 @@ class OKEXFUTURES:
                                                  underlying=self.__instrument_id.split("-")[0] + "-" +
                                                             self.__instrument_id.split("-")[1])  # 设置账户模式为全仓模式后再设置杠杆倍数
             except Exception as e:
-                pass
-                # print("OKEX交割合约设置全仓模式失败！错误：{}".format(str(e)))
+                logger.error("OKEX交割合约设置全仓模式失败！错误：{}".format(str(e)))
 
 
     def get_single_equity(self, symbol):

@@ -10,6 +10,7 @@ import time
 from purequant.exchange.okex import swap_api as okexswap
 from purequant.config import config
 from purequant.exceptions import *
+from purequant.logger import logger
 
 
 class OKEXSWAP:
@@ -34,14 +35,12 @@ class OKEXSWAP:
                 self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=1)
                 self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=2)
             except Exception as e:
-                pass
-            # print("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成逐仓模式！错误：{}".format(str(e)))
+                logger.error("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成逐仓模式！错误：{}".format(str(e)))
         else:
             try:
                 self.__okex_swap.set_leverage(leverage=self.__leverage, instrument_id=self.__instrument_id, side=3)
             except Exception as e:
-                pass
-                # print("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成全仓模式！错误：{}".format(str(e)))
+                logger.error("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成全仓模式！错误：{}".format(str(e)))
 
 
     def get_single_equity(self, instrument_id):
