@@ -29,7 +29,7 @@ class __LOGGER:
     def __init__(self):
         if not os.path.exists("./logs"):    # 如果logs文件夹不存在就自动创建
             os.makedirs("./logs")
-        self.__path = './logs/purequant.log'
+        self.__path = './logs/error.log'
         self.__logger = logging.getLogger("purequant")
 
     def __initialize(self):
