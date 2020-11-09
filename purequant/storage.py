@@ -8,7 +8,6 @@ Date:   2020/07/09
 email: interstella.ranger2020@gmail.com
 """
 import logging, mysql.connector, pymongo
-from purequant import time
 from purequant.indicators import INDICATORS
 import pandas as pd
 from purequant.config import config
@@ -56,7 +55,7 @@ class __Storage:
         cursor2.execute(
             'insert into {} (timestamp, profit, asset) values (%s, %s, %s)'.format(
                 data_sheet),
-            [time.get_localtime(), profit, asset])
+            [get_localtime(), profit, asset])
         conn2.commit()
         cursor2.close()
         conn2.close()
@@ -96,7 +95,7 @@ class __Storage:
         cursor2.execute(
             'insert into {} (timestamp, direction, amount) values (%s, %s, %s)'.format(
                 data_sheet),
-            [time.get_localtime(), direction, amount])
+            [get_localtime(), direction, amount])
         conn2.commit()
         cursor2.close()
         conn2.close()
@@ -225,7 +224,7 @@ class __Storage:
                 close = last_kline[4]
                 volume = last_kline[5]
                 self.__six_save_kline_func(database, data_sheet, timestamp, open, high, low, close, volume)
-                print("时间：{} 实时k线数据已保存至MySQL数据库中！".format(time.get_localtime()))
+                print("时间：{} 实时k线数据已保存至MySQL数据库中！".format(get_localtime()))
                 self.__old_kline = last_kline  # 将刚保存的k线设为旧k线
             else:
                 return
@@ -333,7 +332,7 @@ class __Storage:
 
     def mysql_save_okex_spot_accounts(self, database, data_sheet, currency, balance, frozen, available, timestamp=None):
         """存储okex现货账户信息至mysql数据库"""
-        timestamp = timestamp if timestamp is not None else time.get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
+        timestamp = timestamp if timestamp is not None else get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
         # 检查数据库是否存在，如不存在则创建
         user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
         password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
@@ -378,7 +377,7 @@ class __Storage:
                                                                 total_avail_balance, auto_margin, liqui_mode,
                                                                 can_withdraw, timestamp=None):
         """存储okex逐仓模式交割合约账户信息至mysql数据库"""
-        timestamp = timestamp if timestamp is not None else time.get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
+        timestamp = timestamp if timestamp is not None else get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
         # 检查数据库是否存在，如不存在则创建
         user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
         password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
@@ -422,7 +421,7 @@ class __Storage:
                                                 margin_frozen, margin_for_unfilled, realized_pnl, unrealized_pnl, margin_ratio, maint_margin_ratio,
                                                 liqui_mode, can_withdraw, liqui_fee_rate, timestamp=None):
         """存储okex全仓模式交割合约账户信息至mysql数据库"""
-        timestamp = timestamp if timestamp is not None else time.get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
+        timestamp = timestamp if timestamp is not None else get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
         # 检查数据库是否存在，如不存在则创建
         user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
         password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
