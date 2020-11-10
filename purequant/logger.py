@@ -49,7 +49,7 @@ class __LOGGER:
         formatter = logging.Formatter(fmt='[%(asctime)s] -> [%(levelname)s] : %(message)s')
         # 文件输出按照时间分割
         time_rotating_file_handler = handlers.TimedRotatingFileHandler(filename=self.__path, when='MIDNIGHT',
-                                                                       interval=1, backupCount=1000)
+                                                                       interval=1, backupCount=10)
         time_rotating_file_handler.setFormatter(formatter)
         time_rotating_file_handler.suffix = "%Y%m%d-%H%M%S.log"
 
@@ -63,7 +63,7 @@ class __LOGGER:
         stream_handler.setFormatter(console_formatter)
 
         # 文件输出按照大小分割
-        rotatingHandler = ConcurrentRotatingFileHandler(self.__path, "a", 1024 * 1024, 1000) # a为追加模式，按1M大小分割,保留最近1000个文件
+        rotatingHandler = ConcurrentRotatingFileHandler(self.__path, "a", 1024 * 1024, 10) # a为追加模式，按1M大小分割,保留最近10个文件
         rotatingHandler.setFormatter(formatter)
 
         if config.handler == "time":

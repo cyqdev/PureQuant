@@ -225,9 +225,9 @@ def request(method, path, params=None):
 def signedRequest(method, path, params):
     if "apiKey" not in options or "secret" not in options:
         raise ValueError("Api key and secret must be set")
-
+    timestamp = requests.get("https://api.binance.com/api/v3/time").json()['serverTime']
     query = urlencode(sorted(params.items()))
-    query += "&timestamp={}".format(get_cur_timestamp_ms()-1000)
+    query += "&timestamp={}".format(timestamp)
     secret = bytes(options["secret"].encode("utf-8"))
     signature = hmac.new(secret, query.encode("utf-8"),
                          hashlib.sha256).hexdigest()
