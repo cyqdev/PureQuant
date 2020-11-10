@@ -585,6 +585,11 @@ class HuobiSVC:
         signature = signature.decode()
         return signature
 
+    def asset_valuation(self, accountType, valuationCurrency):
+        params = {"accountType": accountType, "valuationCurrency": valuationCurrency}
+        url = '/v2/account/asset-valuation'
+        return self.api_key_get(params, url)
+
 
 if __name__ == "__main__":
     svc = HuobiSVC('', '', url_type='aws')

@@ -1,6 +1,6 @@
 import numpy as np
 import talib
-from purequant import time
+from purequant.time import *
 from purequant.config import config
 
 
@@ -71,21 +71,28 @@ class INDICATORS:
         """
         if config.backtest == "enabled":
             records = kline
-        else:
-            records = self.__platform.get_kline(self.__time_frame)
-        kline_length = len(records)
-        if type(records[0][0]) == str:
-            current_timestamp = time.utctime_str_to_ts(records[kline_length - 1][0])
-        elif type(records[0][0]) == int or type(records[0][0]) == float:
+            kline_length = len(records)
             current_timestamp = records[kline_length - 1][0]
-        if current_timestamp != self.__last_time_stamp:  # 如果当前时间戳不等于lastTime，说明k线更新
-            if current_timestamp < self.__last_time_stamp:
-                return
-            else:
+            if current_timestamp != self.__last_time_stamp:  # 如果当前时间戳不等于lastTime，说明k线更新
                 self.__last_time_stamp = current_timestamp
                 return True
+            else:
+                return False
         else:
-            return False
+            records = self.__platform.get_kline(self.__time_frame)
+            kline_length = len(records)
+            if type(records[0][0]) == str:
+                current_timestamp = utctime_str_to_ts(records[kline_length - 1][0])
+            else:
+                current_timestamp = records[kline_length - 1][0]
+            if current_timestamp != self.__last_time_stamp:  # 如果当前时间戳不等于lastTime，说明k线更新
+                if current_timestamp < self.__last_time_stamp:
+                    return
+                else:
+                    self.__last_time_stamp = current_timestamp
+                    return True
+            else:
+                return False
 
     def CurrentBar(self, kline=None):
         """
