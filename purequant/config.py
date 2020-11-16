@@ -25,10 +25,6 @@ class __Config:
         """
         with open(config_file) as json_file:
             configures = json.load(json_file)
-        # exchange
-        self.access_key = configures['EXCHANGE']['access_key']
-        self.secret_key = configures['EXCHANGE']['secret_key']
-        self.passphrase = configures['EXCHANGE']['passphrase']
         # push
         self.ding_talk_api = configures['DINGTALK']['ding_talk_api']
         self.accountSID = configures['TWILIO']['accountSID']
@@ -70,6 +66,44 @@ class __Config:
         # PROXY
         self.proxy_host = configures["PROXY"].split(":")[0]
         self.proxy_port = configures["PROXY"].split(":")[1]
+        # exchange
+        try:
+            self.okex_access_key = configures['EXCHANGE']['okex']['access_key']
+            self.okex_secret_key = configures['EXCHANGE']['okex']['secret_key']
+            self.okex_passphrase = configures['EXCHANGE']['okex']['passphrase']
+        except:
+            pass
+        try:
+            self.huobi_access_key = configures['EXCHANGE']['huobi']['access_key']
+            self.huobi_secret_key = configures['EXCHANGE']['huobi']['secret_key']
+        except:
+            pass
+        try:
+            self.binance_access_key = configures['EXCHANGE']['binance']['access_key']
+            self.binance_secret_key = configures['EXCHANGE']['binance']['secret_key']
+        except:
+            pass
+        try:
+            self.bitmex_access_key = configures['EXCHANGE']['bitmex']['access_key']
+            self.bitmex_secret_key = configures['EXCHANGE']['bitmex']['secret_key']
+        except:
+            pass
+        try:
+            self.bitcoke_access_key = configures['EXCHANGE']['bitcoke']['access_key']
+            self.bitcoke_secret_key = configures['EXCHANGE']['bitcoke']['secret_key']
+        except:
+            pass
+        try:
+            self.bybit_access_key = configures['EXCHANGE']['bybit']['access_key']
+            self.bybit_secret_key = configures['EXCHANGE']['bybit']['secret_key']
+        except:
+            pass
+        try:
+            self.mxc_access_key = configures['EXCHANGE']['mxc']['access_key']
+            self.mxc_secret_key = configures['EXCHANGE']['mxc']['secret_key']
+        except:
+            pass
+        
 
     def update_config(self, config_file, config_content):
         """
