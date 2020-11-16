@@ -67,6 +67,9 @@ class __Config:
         self.mysql_password = configures["MYSQL"]["password"]
         # BACKTEST
         self.backtest = configures["MODE"]["backtest"]
+        # PROXY
+        self.proxy_host = configures["PROXY"].split(":")[0]
+        self.proxy_port = configures["PROXY"].split(":")[1]
 
     def update_config(self, config_file, config_content):
         """

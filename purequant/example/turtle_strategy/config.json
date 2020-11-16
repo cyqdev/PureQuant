@@ -1,16 +1,16 @@
 {
     "STATUS": {
-        "first_run": "true"		
+        "first_run": true
     },
     "MODE": {
-        "backtest": "enabled"	
+        "backtest": true
     },
     "ASSISTANT": {
-        "automatic_cancellation": "true",						
+        "automatic_cancellation": true,
         "reissue_order": "0.0%",			
-        "price_cancellation": "true",		
+        "price_cancellation": true,
         "amplitude": "0.5%",				
-        "time_cancellation": "true",		
+        "time_cancellation": true,
         "seconds": 10						
     },
     "LOG": {
@@ -18,9 +18,9 @@
         "handler": "stream"
     },
     "PUSH": {
-        "sendmail": "false",
-        "dingtalk": "true",
-        "twilio": "false"
+        "sendmail": false,
+        "dingtalk": true,
+        "twilio": false
     },
     "EXCHANGE": {		
         "access_key": "你的access key",
@@ -28,12 +28,12 @@
         "passphrase": "你的passphrase"
     },
     "MYSQL": {		
-        "authorization": "disabled",
+        "authorization": false,
         "user_name": "root",
         "password": ""
     },
     "MONGODB": {	
-        "authorization": "disabled",
+        "authorization": false,
         "user_name": "root",
         "password": ""
     },

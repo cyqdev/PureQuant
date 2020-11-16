@@ -35,7 +35,7 @@ class Strategy:
         # 在第一次运行程序时，将初始资金数据保存至数据库中
         self.database = "回测"    # 无论实盘或回测，此处database名称可以任意命名
         self.datasheet = self.instrument_id.split("-")[0].lower() + "_" + time_frame
-        if config.first_run == "true":
+        if config.first_run:
             storage.mysql_save_strategy_run_info(self.database, self.datasheet, "策略参数为" + str(fast_length) + "&" + str(slow_length),
                                             "none", 0, 0, 0, 0, "none", 0, 0, 0, start_asset)
         # 读取数据库中保存的总资金数据
@@ -174,7 +174,7 @@ class Strategy:
 if __name__ == "__main__":
 
     config.loads('config.json')
-    if config.backtest == "enabled":  # 回测模式
+    if config.backtest:  # 回测模式
         instrument_id = "LTC-USDT-201225"
         time_frame = "1d"
         fast_length_list = range(5, 20, 2)

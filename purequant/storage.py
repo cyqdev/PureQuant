@@ -23,8 +23,8 @@ class __Storage:
     def save_asset_and_profit(self, database, data_sheet, profit, asset):
         """存储单笔交易盈亏与总资金信息至mysql数据库"""
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -63,8 +63,8 @@ class __Storage:
     def mysql_save_strategy_position(self, database, data_sheet, direction, amount):
         """存储持仓方向与持仓数量信息至mysql数据库"""
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -103,8 +103,8 @@ class __Storage:
     def __save_kline_func(self, database, data_sheet, timestamp, open, high, low, close, volume, currency_volume):
         """此函数专为存储7列k线数据的函数使用"""
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -145,8 +145,8 @@ class __Storage:
     def __six_save_kline_func(self, database, data_sheet, timestamp, open, high, low, close, volume):
         """此函数专为存储6列k线数据的函数使用"""
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -214,7 +214,7 @@ class __Storage:
         :return:
         """
         indicators = INDICATORS(platform, instrument_id, time_frame)
-        if indicators.BarUpdate() == True:
+        if indicators.BarUpdate():
             last_kline = platform.get_kline(time_frame)[1]
             if last_kline != self.__old_kline:    # 若获取得k线不同于已保存的上一个k线
                 timestamp = last_kline[0]
@@ -239,9 +239,9 @@ class __Storage:
         :return: 返回值查询到的数据，如未查询到则返回None
         """
         # 连接数据库
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
-        conn = mysql.connector.connect(user=user, password=password, database=database, buffered = True)
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
+        conn = mysql.connector.connect(user=user, password=password, database=database, buffered=True)
         # 打开游标
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM {} WHERE {} {} '{}'".format(datasheet, field, operator, data))
@@ -261,9 +261,9 @@ class __Storage:
         :return: 返回值查询到的数据，如未查询到则返回None
         """
         # 连接数据库
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
-        conn = mysql.connector.connect(user=user, password=password, database=database, buffered = True)
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
+        conn = mysql.connector.connect(user=user, password=password, database=database, buffered=True)
         # 打开游标
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM {} WHERE {} = '{}'".format(datasheet, field, data))
@@ -301,7 +301,7 @@ class __Storage:
     def mongodb_save(self, database, collection, data):
         """保存数据至mongodb"""
         client = pymongo.MongoClient(host='localhost', port=27017)
-        if config.mongodb_authorization == "enabled":   # 如果启用了授权验证
+        if config.mongodb_authorization:   # 如果启用了授权验证
             client.admin.authenticate(config.mongodb_user_name, config.mongodb_password, mechanism='SCRAM-SHA-1')
         db = client[database]
         col = db[collection]
@@ -310,7 +310,7 @@ class __Storage:
     def mongodb_read_data(self, database, collection):
         """读取mongodb数据库中某集合中的所有数据，并保存至一个列表中"""
         client = pymongo.MongoClient(host='localhost', port=27017)
-        if config.mongodb_authorization == "enabled":  # 如果启用了授权验证
+        if config.mongodb_authorization:  # 如果启用了授权验证
             client.admin.authenticate(config.mongodb_user_name, config.mongodb_password, mechanism='SCRAM-SHA-1')
         db = client[database]
         col = db[collection]
@@ -322,7 +322,7 @@ class __Storage:
     def export_mongodb_to_csv(self, database, collection, csv_file_path):
         """导出mongodb集合中的数据至csv文件"""
         client = pymongo.MongoClient(host='localhost', port=27017)
-        if config.mongodb_authorization == "enabled":  # 如果启用了授权验证
+        if config.mongodb_authorization:  # 如果启用了授权验证
             client.admin.authenticate(config.mongodb_user_name, config.mongodb_password, mechanism='SCRAM-SHA-1')
         db = client[database]
         sheet_table = db[collection]
@@ -334,8 +334,8 @@ class __Storage:
         """存储okex现货账户信息至mysql数据库"""
         timestamp = timestamp if timestamp is not None else get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -379,8 +379,8 @@ class __Storage:
         """存储okex逐仓模式交割合约账户信息至mysql数据库"""
         timestamp = timestamp if timestamp is not None else get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -423,8 +423,8 @@ class __Storage:
         """存储okex全仓模式交割合约账户信息至mysql数据库"""
         timestamp = timestamp if timestamp is not None else get_localtime()   # 默认是自动填充本地时间，也可以传入*****来做数据分割
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -465,8 +465,8 @@ class __Storage:
     def mysql_save_okex_swap_accounts(self, database, data_sheet, timestamp, symbol, currency, margin_mode, equity, total_avail_balance, fixed_balance, margin, margin_frozen, realized_pnl, unrealized_pnl, margin_ratio, maint_margin_ratio, max_withdraw):
         """存储okex全仓模式交割合约账户信息至mysql数据库"""
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")
@@ -505,8 +505,8 @@ class __Storage:
     def delete_mysql_database(self, database):
         """删除mysql中的数据库"""
         # 连接数据库
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn = mysql.connector.connect(user=user, password=password)
         cursor = conn.cursor()
         # 删除数据库
@@ -520,7 +520,7 @@ class __Storage:
     def delete_mongodb_database(self, database):
         """删除mongodb的数据库"""
         client = pymongo.MongoClient(host='localhost', port=27017)
-        if config.mongodb_authorization == "enabled":  # 如果启用了授权验证
+        if config.mongodb_authorization:  # 如果启用了授权验证
             client.admin.authenticate(config.mongodb_user_name, config.mongodb_password, mechanism='SCRAM-SHA-1')
         db = client[database]
         db.command("dropDatabase")
@@ -544,8 +544,8 @@ class __Storage:
         :return:
         """
         # 检查数据库是否存在，如不存在则创建
-        user = config.mysql_user_name if config.mysql_authorization == "enabled" else 'root'
-        password = config.mysql_password if config.mysql_authorization == "enabled" else 'root'
+        user = config.mysql_user_name if config.mysql_authorization else 'root'
+        password = config.mysql_password if config.mysql_authorization else 'root'
         conn1 = mysql.connector.connect(user=user, password=password)
         cursor1 = conn1.cursor()
         cursor1.execute("SHOW DATABASES")

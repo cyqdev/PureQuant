@@ -29,7 +29,7 @@ class MARKET:
         :param kline: 回测时传入指定k线数据
         :return:
         """
-        if config.backtest == "enabled":    # 回测模式
+        if config.backtest is True:    # 回测模式
             return float(kline[param][1])
         else:   # 实盘模式
             records = self.__platform.get_kline(self.__time_frame)
@@ -44,7 +44,7 @@ class MARKET:
         :param kline: 回测时传入指定k线数据
         :return:
         """
-        if config.backtest == "enabled":
+        if config.backtest is True:
             return float(kline[param][2])
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -59,7 +59,7 @@ class MARKET:
         :param kline: 回测时传入指定k线数据
         :return:
         """
-        if config.backtest == "enabled":
+        if config.backtest is True:
             return float(kline[param][3])
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -74,7 +74,7 @@ class MARKET:
         :param kline: 回测时传入指定k线数据
         :return:
         """
-        if config.backtest == "enabled":
+        if config.backtest is True:
             return float(kline[param][4])
         else:
             records = self.__platform.get_kline(self.__time_frame)

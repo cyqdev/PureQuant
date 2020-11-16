@@ -30,7 +30,7 @@ class Strategy:
         # 在第一次运行程序时，将初始资金数据保存至数据库中
         self.database = "回测"    # 回测时必须为"回测"
         self.datasheet = self.instrument_id.split("-")[0].lower() + "_" + time_frame
-        if config.first_run == "true":
+        if config.first_run:
             storage.mysql_save_strategy_run_info(self.database, self.datasheet, get_localtime(),
                                             "none", 0, 0, 0, 0, "none", 0, 0, 0, start_asset)
         # 读取数据库中保存的总资金数据
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     time_frame = "1d"
     strategy = Strategy(instrument_id=instrument_id, time_frame=time_frame, fast_length=5, slow_length=10, long_stop=0.98, short_stop=1.02, start_asset=30)
 
-    if config.backtest == "enabled":    # 回测模式
+    if config.backtest:    # 回测模式
         print("正在回测，可能需要一段时间，请稍后...")
         start_time = get_cur_timestamp()
         records = []

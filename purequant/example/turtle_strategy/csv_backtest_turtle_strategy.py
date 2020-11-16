@@ -31,7 +31,7 @@ class Strategy:
         self.indicators = INDICATORS(self.exchange, self.instrument_id, self.time_frame)    # 初始化indicators
         self.database = "回测"  # 如从purequant服务器的数据库上获取历史k线数据进行回测，必须为"回测"
         self.datasheet = self.instrument_id.split("-")[0].lower() + "_" + time_frame    # 数据表
-        if config.first_run == "true":  # 程序第一次启动时保存数据，实盘时如策略中止再重启时，可以将配置文件中的first_run改成"false"，程序再次启动会直接读取数据库中保存的数据
+        if config.first_run:  # 程序第一次启动时保存数据，实盘时如策略中止再重启时，可以将配置文件中的first_run改成"false"，程序再次启动会直接读取数据库中保存的数据
             storage.mysql_save_strategy_run_info(self.database, self.datasheet, get_localtime(),
                                                  "none", 0, 0, 0, 0, "none", 0, 0, 0, start_asset)
         # 读取数据库中保存的总资金、总盈亏数据
@@ -221,7 +221,7 @@ if __name__ == "__main__":
     time_frame = "1d"
     strategy = Strategy(instrument_id, time_frame, start_asset=1000)
 
-    if config.backtest == "enabled":  # 回测模式
+    if config.backtest:  # 回测模式
         """先处理csv数据"""
         df = pd.read_csv('BTCUSD_bmx_1d_20170505-20200420.csv')  # 读取csv文件
         order = ['candle_begin_time', 'open', 'high', 'low', 'close', 'volume']  # 列名排序

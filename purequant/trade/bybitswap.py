@@ -123,7 +123,7 @@ class BYBITSWAP:
             return dict
 
     def buy(self, price, size, order_type=None, time_in_force=None):
-        if config.backtest != "enabled":  # 实盘模式
+        if config.backtest is False:  # 实盘模式
             order_type = order_type or "Limit"
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Buy", price=price, qty=size, order_type=order_type, time_in_force=time_in_force,
@@ -134,7 +134,7 @@ class BYBITSWAP:
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
-            if config.price_cancellation == "true":  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
+            if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
                 if order_info["订单状态"] == "等待成交":
                     if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                         try:
@@ -159,7 +159,7 @@ class BYBITSWAP:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
                             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                                 return {"【交易提醒】下单结果": order_info}
-            if config.time_cancellation == "true":  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
+            if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
                 time.sleep(config.time_cancellation_seconds)
                 order_info = self.get_order_info(order_id=result['result']['order_id'])
                 if order_info["订单状态"] == "等待成交":
@@ -184,7 +184,7 @@ class BYBITSWAP:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                             return {"【交易提醒】下单结果": order_info}
-            if config.automatic_cancellation == "true":
+            if config.automatic_cancellation:
                 # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
                 try:
                     self.revoke_order(order_id=result['result']['order_id'])
@@ -200,7 +200,7 @@ class BYBITSWAP:
             return "回测模拟下单成功！"
 
     def buytocover(self, price, size, order_type=None, time_in_force=None):
-        if config.backtest != "enabled":  # 实盘模式
+        if config.backtest is False:  # 实盘模式
             order_type = order_type or "Limit"
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Buy", price=price, qty=size,
@@ -212,7 +212,7 @@ class BYBITSWAP:
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
-            if config.price_cancellation == "true":  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
+            if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
                 if order_info["订单状态"] == "等待成交":
                     if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                         try:
@@ -237,7 +237,7 @@ class BYBITSWAP:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
                             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                                 return {"【交易提醒】下单结果": order_info}
-            if config.time_cancellation == "true":  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
+            if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
                 time.sleep(config.time_cancellation_seconds)
                 order_info = self.get_order_info(order_id=result['result']['order_id'])
                 if order_info["订单状态"] == "等待成交":
@@ -262,7 +262,7 @@ class BYBITSWAP:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                             return {"【交易提醒】下单结果": order_info}
-            if config.automatic_cancellation == "true":
+            if config.automatic_cancellation:
                 # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
                 try:
                     self.revoke_order(order_id=result['result']['order_id'])
@@ -278,7 +278,7 @@ class BYBITSWAP:
             return "回测模拟下单成功！"
 
     def sell(self, price, size, order_type=None, time_in_force=None):
-        if config.backtest != "enabled":  # 实盘模式
+        if config.backtest is False:  # 实盘模式
             order_type = order_type or "Limit"
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Sell", price=price, qty=size, order_type=order_type, time_in_force=time_in_force,
@@ -289,7 +289,7 @@ class BYBITSWAP:
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
-            if config.price_cancellation == "true":  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
+            if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
                 if order_info["订单状态"] == "等待成交":
                     if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                         try:
@@ -314,7 +314,7 @@ class BYBITSWAP:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
                             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                                 return {"【交易提醒】下单结果": order_info}
-            if config.time_cancellation == "true":  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
+            if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
                 time.sleep(config.time_cancellation_seconds)
                 order_info = self.get_order_info(order_id=result['result']['order_id'])
                 if order_info["订单状态"] == "等待成交":
@@ -339,7 +339,7 @@ class BYBITSWAP:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                             return {"【交易提醒】下单结果": order_info}
-            if config.automatic_cancellation == "true":
+            if config.automatic_cancellation:
                 # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
                 try:
                     self.revoke_order(order_id=result['result']['order_id'])
@@ -355,7 +355,7 @@ class BYBITSWAP:
             return "回测模拟下单成功！"
 
     def sellshort(self, price, size, order_type=None, time_in_force=None):
-        if config.backtest != "enabled":  # 实盘模式
+        if config.backtest is False:  # 实盘模式
             order_type = order_type or "Limit"
             time_in_force = time_in_force or "GoodTillCancel"
             result = self.__bybit.create_order(symbol=self.__symbol, side="Sell", price=price, qty=size,
@@ -367,7 +367,7 @@ class BYBITSWAP:
             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
                 return {"【交易提醒】下单结果": order_info}
             # 如果订单状态不是"完全成交"或者"失败"
-            if config.price_cancellation == "true":  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
+            if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
                 if order_info["订单状态"] == "等待成交":
                     if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                         try:
@@ -392,7 +392,7 @@ class BYBITSWAP:
                             order_info = self.get_order_info(order_id=result['result']['order_id'])
                             if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                                 return {"【交易提醒】下单结果": order_info}
-            if config.time_cancellation == "true":  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
+            if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
                 time.sleep(config.time_cancellation_seconds)
                 order_info = self.get_order_info(order_id=result['result']['order_id'])
                 if order_info["订单状态"] == "等待成交":
@@ -417,7 +417,7 @@ class BYBITSWAP:
                         order_info = self.get_order_info(order_id=result['result']['order_id'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
                             return {"【交易提醒】下单结果": order_info}
-            if config.automatic_cancellation == "true":
+            if config.automatic_cancellation:
                 # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
                 try:
                     self.revoke_order(order_id=result['result']['order_id'])
@@ -433,7 +433,7 @@ class BYBITSWAP:
             return "回测模拟下单成功！"
 
     def BUY(self, cover_short_price, cover_short_size, open_long_price, open_long_size, order_type=None, time_in_force=None):
-        if config.backtest != "enabled":  # 实盘模式
+        if config.backtest is False:  # 实盘模式
             result1 = self.buytocover(cover_short_price, cover_short_size, order_type, time_in_force)
             if "完全成交" in str(result1):
                 result2 = self.buy(open_long_price, open_long_size, order_type, time_in_force)
@@ -444,7 +444,7 @@ class BYBITSWAP:
             return "回测模拟下单成功！"
 
     def SELL(self, cover_long_price, cover_long_size, open_short_price, open_short_size, order_type=None, time_in_force=None):
-        if config.backtest != "enabled":  # 实盘模式
+        if config.backtest is False:  # 实盘模式
             result1 = self.sell(cover_long_price, cover_long_size, order_type, time_in_force)
             if "完全成交" in str(result1):
                 result2 = self.sellshort(open_short_price, open_short_size, order_type, time_in_force)
