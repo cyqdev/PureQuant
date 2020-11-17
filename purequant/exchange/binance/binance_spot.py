@@ -1,7 +1,7 @@
 import hmac
 import hashlib
 import logging
-import requests
+from purequant.exchange.rq import rq, get, post
 import time
 from purequant.time import ts_to_utc_str, get_cur_timestamp_ms
 try:
@@ -215,7 +215,7 @@ def myTrades(symbol, **kwargs):
 
 
 def request(method, path, params=None):
-    resp = requests.request(method, ENDPOINT + path, params=params)
+    resp = rq(method, ENDPOINT + path, params=params)
     data = resp.json()
     if "msg" in data:
         logging.error(data['msg'])
@@ -225,16 +225,16 @@ def request(method, path, params=None):
 def signedRequest(method, path, params):
     if "apiKey" not in options or "secret" not in options:
         raise ValueError("Api key and secret must be set")
-    timestamp = requests.get("https://api.binance.com/api/v3/time").json()['serverTime']
+    timestamp = get("https://api.binance.com/api/v3/time").json()['serverTime']
     query = urlencode(sorted(params.items()))
     query += "&timestamp={}".format(timestamp)
     secret = bytes(options["secret"].encode("utf-8"))
     signature = hmac.new(secret, query.encode("utf-8"),
                          hashlib.sha256).hexdigest()
     query += "&signature={}".format(signature)
-    resp = requests.request(method,
-                            ENDPOINT + path + "?" + query,
-                            headers={"X-MBX-APIKEY": options["apiKey"]})
+    resp = rq(method,
+              ENDPOINT + path + "?" + query,
+              headers={"X-MBX-APIKEY": options["apiKey"]})
     data = resp.json()
     if "msg" in data:
         logging.error(data['msg'])

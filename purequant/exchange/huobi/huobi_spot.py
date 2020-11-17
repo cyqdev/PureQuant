@@ -6,8 +6,8 @@ import json
 import urllib
 import urllib.parse
 import urllib.request
-import requests
 import pandas as pd
+from purequant.exchange.rq import rq, get, post
 
 # In general, the domain api-aws.huobi.pro is optimized for AWS client, the latency will be lower.
 MARKET_URL = "https://api.huobi.pro"
@@ -510,7 +510,7 @@ class HuobiSVC:
         if add_to_headers:
             headers.update(add_to_headers)
         postdata = urllib.parse.urlencode(params)
-        response = requests.get(url, postdata, headers=headers, timeout=5)
+        response = get(url, postdata, headers=headers, timeout=5)
         try:
 
             if response.status_code == 200:
@@ -529,7 +529,7 @@ class HuobiSVC:
         if add_to_headers:
             headers.update(add_to_headers)
         postdata = json.dumps(params)
-        response = requests.post(url, postdata, headers=headers, timeout=10)
+        response = post(url, postdata, headers=headers, timeout=10)
 
         try:
 

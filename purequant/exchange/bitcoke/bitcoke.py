@@ -7,11 +7,11 @@ BTCUSD、ETHUSD、EOSUSD、LTCUSD、BCHUSD、TRXUSD、LINKUSD、DOTUSD、XTZUSD�
 
 例如：您使用BTC交易EOSUSD合约，在盈亏结算时，对于我们的系统，需要做相关换币工作，不同资产间的兑换都是需要支付兑换费用，但是我们目前不收取费用。如有收费变动，我们会提前通过交易所各个官方渠道通知。
 """
-import requests
 import urllib.parse
 import hashlib
 import urllib
 from purequant.time import get_cur_timestamp
+from purequant.exchange.rq import rq, get, post
 
 TIMEOUT = 5
 
@@ -33,7 +33,7 @@ class BitCoke:
             headers.update(add_to_headers)
         postdata = urllib.parse.urlencode(params)   # 将字典里面所有的键值转化为query-string格式（key=value&key=value），并且将中文转码
         try:
-            response = requests.get(url+"?"+postdata, headers=headers, timeout=TIMEOUT)
+            response = get(url+"?"+postdata, headers=headers, timeout=TIMEOUT)
             if response.status_code == 200:
                 return response.json()
             else:
@@ -51,7 +51,7 @@ class BitCoke:
             headers.update(add_to_headers)
         postdata = urllib.parse.urlencode(params)
         try:
-            response = requests.post(url+"?"+postdata, headers=headers, timeout=TIMEOUT)
+            response = post(url+"?"+postdata, headers=headers, timeout=TIMEOUT)
             if response.status_code == 200:
                 return response.json()
             else:

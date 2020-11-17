@@ -11,7 +11,7 @@ import json
 
 import urllib
 import datetime
-import requests
+from purequant.exchange.rq import rq, get, post
 #import urlparse   # urllib.parse in python 3
 
 # timeout in 5 seconds:
@@ -27,7 +27,7 @@ def http_get_request(url, params, add_to_headers=None):
         headers.update(add_to_headers)
     postdata = urllib.parse.urlencode(params)
     try:
-        response = requests.get(url, postdata, headers=headers, timeout=TIMEOUT)
+        response = get(url, postdata, headers=headers, timeout=TIMEOUT)
         if response.status_code == 200:
             return response.json()
         else:
@@ -46,7 +46,7 @@ def http_post_request(url, params, add_to_headers=None):
         headers.update(add_to_headers)
     postdata = json.dumps(params)
     try:
-        response = requests.post(url, postdata, headers=headers, timeout=TIMEOUT)
+        response = post(url, postdata, headers=headers, timeout=TIMEOUT)
         if response.status_code == 200:
             return response.json()
         else:

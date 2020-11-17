@@ -4,10 +4,10 @@ Official documentation can be found at 'https://www.bitmex.com/api/explorer/'
 """
 import hmac
 import hashlib
-import requests
 import time
 import sys
 from urllib.parse import urlencode
+from purequant.exchange.rq import rq, get, post
 
 REAL_BASE = 'https://www.bitmex.com/api/v1'
 TEST_BASE = 'https://testnet.bitmex.com/api/v1'
@@ -897,7 +897,7 @@ class Bitmex(object):
 
         fullURL = "{0}{1}{2}".format(self.BASE_URL, path, query)
 
-        apiResponse = requests.request(method, fullURL)
+        apiResponse = rq(method, fullURL)
 
         data = apiResponse.json()
 
@@ -928,7 +928,7 @@ class Bitmex(object):
             "api-signature": signature
         }
 
-        apiResponse = requests.request(method, fullURL, headers=headers)
+        apiResponse = rq(method, fullURL, headers=headers)
         data = apiResponse.json()
 
         return (data)

@@ -1,8 +1,8 @@
-import requests
 import urllib.parse
 import hmac
 import urllib
 import time
+from purequant.exchange.rq import rq, get, post
 from purequant.time import get_cur_timestamp, get_cur_timestamp_ms
 
 TIMEOUT = 5
@@ -22,7 +22,7 @@ class BybitSwap:
         }
         postdata = urllib.parse.urlencode(params)   # 将字典里面所有的键值转化为query-string格式（key=value&key=value），并且将中文转码
         try:
-            response = requests.get(url+"?"+postdata, headers=headers, timeout=TIMEOUT)
+            response = get(url+"?"+postdata, headers=headers, timeout=TIMEOUT)
             return response.json()
         except Exception as e:
             return {"status": "fail", "error_message": "%s" % e}
@@ -34,7 +34,7 @@ class BybitSwap:
         signature = str(hmac.new(bytes(self.__secret_key, "utf-8"), bytes(val, "utf-8"), digestmod="sha256").hexdigest())
         post_data = val + "&sign=" + signature
         try:
-            response = requests.post(url + "?" + post_data, timeout=TIMEOUT)
+            response = post(url + "?" + post_data, timeout=TIMEOUT)
             return response.json()
         except Exception as e:
             return {"status": "fail", "error_message": "%s" % e}
@@ -47,7 +47,7 @@ class BybitSwap:
             hmac.new(bytes(self.__secret_key, "utf-8"), bytes(val, "utf-8"), digestmod="sha256").hexdigest())
         post_data = val + "&sign=" + signature
         try:
-            response = requests.get(url + "?" + post_data, timeout=TIMEOUT)
+            response = get(url + "?" + post_data, timeout=TIMEOUT)
             return response.json()
         except Exception as e:
             return {"status": "fail", "error_message": "%s" % e}

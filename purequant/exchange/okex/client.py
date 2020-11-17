@@ -1,6 +1,6 @@
-import requests
 import json
 from . import consts as c, utils, exceptions
+from purequant.exchange.rq import rq, get, post, delete
 
 
 class Client(object):
@@ -45,11 +45,11 @@ class Client(object):
         # send request
         response = None
         if method == c.GET:
-            response = requests.get(url, headers=header)
+            response = get(url, headers=header)
         elif method == c.POST:
-            response = requests.post(url, data=body, headers=header)
+            response = post(url, data=body, headers=header)
         elif method == c.DELETE:
-            response = requests.delete(url, headers=header)
+            response = delete(url, headers=header)
 
         # exception handle
         if not str(response.status_code).startswith('2'):
@@ -78,7 +78,7 @@ class Client(object):
 
     def _get_timestamp(self):
         url = c.API_URL + c.SERVER_TIMESTAMP_URL
-        response = requests.get(url)
+        response = get(url)
         if response.status_code == 200:
             return response.json()['iso']
         else:

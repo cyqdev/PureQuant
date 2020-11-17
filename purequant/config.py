@@ -64,6 +64,7 @@ class __Config:
         # BACKTEST
         self.backtest = configures["MODE"]["backtest"]
         # PROXY
+        self.proxy = configures["PROXY"]
         self.proxy_host = configures["PROXY"].split(":")[0]
         self.proxy_port = configures["PROXY"].split(":")[1]
         # exchange
