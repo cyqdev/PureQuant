@@ -76,25 +76,25 @@ class __LOGGER:
             if not self.__logger.handlers:
                 self.__logger.addHandler(stream_handler)
 
-    def debug(self, *args):
+    def debug(self, msg=None):
         self.__initialize()
-        self.__logger.debug(args) if args is not None else self.__logger.debug(traceback.format_exc(limit=1))
+        self.__logger.debug(msg) if msg is not None else self.__logger.debug(traceback.format_exc(limit=1))
 
-    def info(self, *args):
+    def info(self, msg=None):
         self.__initialize()
-        self.__logger.info(args) if args is not None else self.__logger.info(traceback.format_exc(limit=1))
+        self.__logger.info(msg) if msg is not None else self.__logger.info(traceback.format_exc(limit=1))
 
-    def warning(self, *args):
+    def warning(self, msg=None):
         self.__initialize()
-        self.__logger.warning(args) if args is not None else self.__logger.warning(traceback.format_exc(limit=1))
+        self.__logger.warning(msg) if msg is not None else self.__logger.warning(traceback.format_exc(limit=1))
 
-    def error(self, *args):
+    def error(self, msg=None):
         self.__initialize()
-        self.__logger.error(args) if args is not None else self.__logger.error(traceback.format_exc(limit=1))
+        self.__logger.error(msg) if msg is not None else self.__logger.error(traceback.format_exc(limit=1))
 
-    def critical(self, *args):
+    def critical(self, msg=None):
         self.__initialize()
-        self.__logger.critical(args) if args is not None else self.__logger.critical(traceback.format_exc(limit=1))
+        self.__logger.critical(msg) if msg is not None else self.__logger.critical(traceback.format_exc(limit=1))
 
 
 logger = __LOGGER()
