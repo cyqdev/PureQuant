@@ -28,13 +28,13 @@ class HUOBISWAP:
         self.__huobi_swap = huobiswap.HuobiSwap(self.__access_key, self.__secret_key)
         self.__leverage = leverage or 20
 
-    def get_single_equity(self, contract_code):
+    def get_single_equity(self, currency):
         """
         获取单个合约账户的权益
-        :param contract_code: 例如 "BTC-USD"
+        :param currency: 例如 "BTC-USD"
         :return:返回浮点数
         """
-        data = self.__huobi_swap.get_contract_account_info(contract_code=contract_code)
+        data = self.__huobi_swap.get_contract_account_info(contract_code=currency)
         result =float(data["data"][0]["margin_balance"])
         return result
 

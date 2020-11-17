@@ -57,13 +57,13 @@ class OKEXFUTURES:
                 logger.error("OKEX交割合约设置全仓模式失败！错误：{}".format(str(e)))
 
 
-    def get_single_equity(self, symbol):
+    def get_single_equity(self, currency):
         """
         获取单个合约账户的权益
-        :param symbol: 例如"btc-usdt"
+        :param currency: 例如"btc-usdt"
         :return:返回浮点数
         """
-        data = self.__okex_futures.get_coin_account(underlying=symbol)
+        data = self.__okex_futures.get_coin_account(underlying=currency)
         result =float(data["equity"])
         return result
 

@@ -42,13 +42,13 @@ class HUOBIFUTURES:
                 self.__contract_type = None
                 raise SymbolError("交易所: Huobi 交割合约ID错误，只支持当季与次季合约！")
 
-    def get_single_equity(self, symbol):
+    def get_single_equity(self, currency):
         """
         获取单个合约账户的权益
-        :param symbol: 例如"BTC","ETH"...
+        :param currency: 例如"BTC","ETH"...
         :return:返回浮点数
         """
-        data = self.__huobi_futures.get_contract_account_info(symbol=symbol)
+        data = self.__huobi_futures.get_contract_account_info(symbol=currency)
         result =float(data["data"][0]["margin_balance"])
         return result
 

@@ -43,13 +43,13 @@ class OKEXSWAP:
                 logger.error("OKEX永续合约设置杠杆倍数失败！请检查账户是否已设置成全仓模式！错误：{}".format(str(e)))
 
 
-    def get_single_equity(self, instrument_id):
+    def get_single_equity(self, currency):
         """
         获取单个合约账户的权益
-        :param instrument_id: 例如"TRX-USDT-SWAP"
+        :param currency: 例如"TRX-USDT-SWAP"
         :return:返回浮点数
         """
-        data = self.__okex_swap.get_coin_account(instrument_id=instrument_id)
+        data = self.__okex_swap.get_coin_account(instrument_id=currency)
         result = float(data["info"]["equity"])
         return result
 

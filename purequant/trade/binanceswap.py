@@ -519,7 +519,7 @@ class BINANCESWAP:
             receipt = self.__binance_swap.position()
             for item in receipt:
                 if item["symbol"] == self.__instrument_id:
-                    if item["positionAmt"] == "0.000":
+                    if float(item["positionAmt"]) == 0:
                         direction = "none"
                     else:
                         direction = 'long' if "-" not in item["positionAmt"] else "short"
