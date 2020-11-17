@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import json
+import requests
 import dateutil.parser as dp
 import hmac
 import base64
@@ -10,7 +11,6 @@ from purequant.push import push
 from purequant.storage import storage
 from purequant.config import config
 from purequant.time import get_localtime
-from purequant.exchange.rq import rq, get, post, delete
 
 def get_timestamp():
     now = datetime.datetime.now()
@@ -20,7 +20,7 @@ def get_timestamp():
 
 def get_server_time():
     url = "https://www.okex.com/api/general/v3/time"
-    response = get(url)
+    response = requests.get(url)
     if response.status_code == 200:
         return response.json()['iso']
     else:

@@ -8,14 +8,13 @@ Date:   2020/07/09
 email: interstella.ranger2020@gmail.com
 """
 from purequant.config import config
-import json, smtplib
+import requests, json, smtplib
 from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import parseaddr, formataddr
 from twilio.rest import Client
 from purequant.storage import storage
 from purequant.time import get_localtime
-from purequant.exchange.rq import rq, get, post, delete
 
 def __dingtalk(text):
     """
@@ -38,7 +37,7 @@ def __dingtalk(text):
 
     headers = {'Content-Type': 'application/json;charset=utf-8'}
     api_url = config.ding_talk_api
-    dingtalk_result = post(api_url, json.dumps(json_text), headers=headers).content    # 发送钉钉消息并返回发送结果
+    dingtalk_result = requests.post(api_url, json.dumps(json_text), headers=headers).content    # 发送钉钉消息并返回发送结果
     storage.text_save("时间：" + str(get_localtime()) + "  发送状态：" + str(dingtalk_result) + "发送内容：" + str(text),
                       './dingtalk.txt')  # 将发送时间、结果和具体发送内容保存至当前目录下text文件中
 
