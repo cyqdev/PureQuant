@@ -561,6 +561,19 @@ class BITCOKE:
         else:  # 回测模式
             return "回测模拟下单成功！"
 
+    def get_funding_rate(self):
+        """获取最新资金费率"""
+        data = self.__bitcoke.get_funding_rate(self.__symbol)
+        instrument_id = data['result'][0]['symbol']
+        funding_time = data['result'][0]['date']
+        funding_rate = data['result'][0]['rate']
+        result = {
+            "instrument_id": instrument_id,
+            "funding_time": funding_time,
+            "funding_rate": funding_rate
+        }
+        return result
+
 
 if __name__ == '__main__':
     exchange = BITCOKE("",

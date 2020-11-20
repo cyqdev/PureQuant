@@ -10,7 +10,7 @@ from purequant.exchange.binance import binance_swap
 from purequant.time import ts_to_utc_str
 from purequant.config import config
 from purequant.exceptions import *
-
+import requests
 
 class BINANCESWAP:
 
@@ -553,3 +553,17 @@ class BINANCESWAP:
             return bids
         else:
             return response
+
+    def get_funding_rate(self):
+        """获取最新资金费率"""
+        data = requests.get("https://fapi.binance.com/fapi/v1/premiumIndex?symbol=%s" % self.__instrument_id).json()
+        instrument_id = data['symbol']
+        funding_time = data['time']
+        funding_rate = data['lastFundingRate']
+        result = {
+            "instrument_id": instrument_id,
+            "funding_time": funding_time,
+            "funding_rate": funding_rate
+        }
+        return result
+

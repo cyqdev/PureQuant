@@ -11,6 +11,7 @@ from purequant.exchange.huobi import huobi_swap as huobiswap
 from purequant.time import ts_to_utc_str
 from purequant.config import config
 from purequant.exceptions import *
+import requests
 
 
 class HUOBISWAP:
@@ -597,3 +598,16 @@ class HUOBISWAP:
             return bids
         else:
             return response
+
+    def get_funding_rate(self):
+        """获取最新资金费率"""
+        data = requests.get("https://api.hbdm.com/swap-api/v1/swap_funding_rate?contract_code=%s" % self.__instrument_id).json()
+        instrument_id = data['data']['contract_code']
+        funding_time = data['data']['funding_time']
+        funding_rate = data['data']['funding_rate']
+        result = {
+            "instrument_id": instrument_id,
+            "funding_time": funding_time,
+            "funding_rate": funding_rate
+        }
+        return result

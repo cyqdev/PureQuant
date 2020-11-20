@@ -7,6 +7,7 @@ email: purequant@foxmail.com
 """
 
 import time
+import requests
 from purequant.exchange.okex import swap_api as okexswap
 from purequant.config import config
 from purequant.exceptions import *
@@ -523,3 +524,16 @@ class OKEXSWAP:
             return bids
         else:
             return response
+
+    def get_funding_rate(self):
+        """获取最新资金费率"""
+        data = requests.get("https://www.okex.com/api/swap/v3/instruments/%s/funding_time" % self.__instrument_id).json()
+        instrument_id = data['instrument_id']
+        funding_time = data['funding_time']
+        funding_rate = data['funding_rate']
+        result = {
+            "instrument_id": instrument_id,
+            "funding_time": funding_time,
+            "funding_rate": funding_rate
+        }
+        return result
