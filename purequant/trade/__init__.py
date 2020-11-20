@@ -4,6 +4,7 @@ from purequant.trade.okexswap import OKEXSWAP
 from purequant.trade.huobispot import HUOBISPOT
 from purequant.trade.huobifutures import HUOBIFUTURES
 from purequant.trade.huobiswap import HUOBISWAP
+from purequant.trade.huobiusdtswap import HUOBIUSDTSWAP
 from purequant.trade.binancespot import BINANCESPOT
 from purequant.trade.binancefutures import BINANCEFUTURES
 from purequant.trade.binanceswap import BINANCESWAP
