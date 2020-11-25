@@ -75,7 +75,7 @@ class HuobiUsdtSwap:
         """
         params = {'contract_code': contract_code,
                   'type': type}
-        url = self.__url + '/swap-ex/market/depth'
+        url = self.__url + '/linear-swap-ex/market/depth'
         return http_get_request(url, params)
 
     # 获取KLine
@@ -91,7 +91,7 @@ class HuobiUsdtSwap:
                   'period': period}
         if size:
             params['size'] = size
-        url = self.__url + '/swap-ex/market/history/kline'
+        url = self.__url + '/linear-swap-ex/market/history/kline'
         return http_get_request(url, params)
 
     # 获取聚合行情
@@ -102,7 +102,7 @@ class HuobiUsdtSwap:
         :return:
         """
         params = {'contract_code': contract_code}
-        url = self.__url + '/swap-ex/market/detail/merged'
+        url = self.__url + '/linear-swap-ex/market/detail/merged'
         return http_get_request(url, params)
 
     # 获取市场最近成交记录
@@ -113,7 +113,7 @@ class HuobiUsdtSwap:
         :return:
         """
         params = {'contract_code': contract_code}
-        url = self.__url + '/swap-ex/market/trade'
+        url = self.__url + '/linear-swap-ex/market/trade'
         return http_get_request(url, params)
 
     # 批量获取最近的交易记录
@@ -126,7 +126,7 @@ class HuobiUsdtSwap:
         """
         params = {'contract_code': contract_code,
                   'size': size}
-        url = self.__url + '/swap-ex/market/history/trade'
+        url = self.__url + '/linear-swap-ex/market/history/trade'
         return http_get_request(url, params)
 
     '''
