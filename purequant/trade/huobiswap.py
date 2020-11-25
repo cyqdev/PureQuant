@@ -7,7 +7,8 @@ email: purequant@foxmail.com
 """
 
 import time
-from purequant.exchange.huobi import huobi_swap as huobiswap
+from purequant.exchange.huobi import huobi_swap as huobiusdswap
+from purequant.exchange.huobi import huobi_usdt_swap as huobiusdtswap
 from purequant.time import ts_to_utc_str
 from purequant.config import config
 from purequant.exceptions import *
@@ -26,7 +27,10 @@ class HUOBISWAP:
         self.__access_key = access_key
         self.__secret_key = secret_key
         self.__instrument_id = "{}-{}".format(instrument_id.split("-")[0], instrument_id.split("-")[1])
-        self.__huobi_swap = huobiswap.HuobiSwap(self.__access_key, self.__secret_key)
+        if "USDT" in instrument_id or "usdt" in instrument_id:
+            self.__huobi_swap = huobiusdtswap.HuobiUsdtSwap(self.__access_key, self.__secret_key)
+        else:
+            self.__huobi_swap = huobiusdswap.HuobiSwap(self.__access_key, self.__secret_key)
         self.__leverage = leverage or 20
 
     def get_single_equity(self, currency):
