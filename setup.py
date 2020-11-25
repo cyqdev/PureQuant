@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name="purequant",
-    version="1.6.5",
+    version="1.6.6",
     packages=[
         "purequant",
         "purequant/exchange/huobi",
@@ -18,11 +18,6 @@ setup(
         "purequant/exchange/bitcoke",
         "purequant/exchange/mxc",
         "purequant/exchange/bybit",
-        "purequant/example/double_moving_average_strategy",
-        "purequant/example/plot_signal",
-        "purequant/example/boll_breakthrough_strategy",
-        "purequant/example/turtle_strategy",
-        "purequant/example/bitmex_simple_maker_strategy",
         "purequant/trade",
     ],
     platforms="any",
@@ -53,12 +48,5 @@ setup(
         "ccxt>=1.35.92",
         "websocket>=0.2.1",
         "pandas>=1.1.4"
-    ],
-    package_data={
-        "purequant/example/double_moving_average_strategy": ["*.json"],
-        "purequant/example/plot_signal": ["*.json"],
-        "purequant/example/boll_breakthrough_strategy": ["*.json"],
-        "purequant/example/turtle_strategy": ["*.json"],
-        "purequant/example/bitmex_simple_maker_strategy": ["*.json"]
-    },
+    ]
 )

@@ -19,7 +19,7 @@ class INDICATORS:
         :param kline:回测时传入指定k线数据
         :return:返回一个一维数组
         """
-        if config.backtest is True:    # 如果是回测模式传入了指定的k线数据
+        if kline:    # 如果是回测模式传入了指定的k线数据
             records = kline
         else:   # 实盘模式下从交易所获取k线数据
             records = self.__platform.get_kline(self.__time_frame)
@@ -45,7 +45,7 @@ class INDICATORS:
         :param kline:回测时传入指定k线数据
         :return: 返回一个字典 {"upperband": 上轨数组， "middleband": 中轨数组， "lowerband": 下轨数组}
         """
-        if config.backtest is True:    # 如果是回测模式传入了指定的k线数据
+        if kline:    # 如果是回测模式传入了指定的k线数据
             records = kline
         else:  # 实盘模式下从交易所获取k线数据
             records = self.__platform.get_kline(self.__time_frame)
@@ -69,7 +69,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: k线更新，返回True；否则返回False
         """
-        if config.backtest is True:
+        if kline:
             records = kline
             kline_length = len(records)
             current_timestamp = records[kline_length - 1][0]
@@ -100,7 +100,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个整型数字
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -114,7 +114,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return:返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -136,7 +136,7 @@ class INDICATORS:
         :param kline:回测时传入指定k线数据
         :return:返回一个一维数组
         """
-        if config.backtest is True:    # 如果是回测模式传入了指定的k线数据
+        if kline:    # 如果是回测模式传入了指定的k线数据
             records = kline
         else:   # 实盘模式下从交易所获取k线数据
             records = self.__platform.get_kline(self.__time_frame)
@@ -164,7 +164,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个字典 {'DIF': DIF数组, 'DEA': DEA数组, 'MACD': MACD数组}
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -190,7 +190,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -217,7 +217,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -245,7 +245,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个字典，{'k': k值数组， 'd': d值数组}
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -277,7 +277,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -297,7 +297,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -318,7 +318,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return:返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -339,7 +339,7 @@ class INDICATORS:
         :param kline:回测时传入指定k线数据
         :return:返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -362,7 +362,7 @@ class INDICATORS:
         :param kline:回测时传入指定k线数据
         :return: 返回一个字典  {'STOCHRSI': STOCHRSI数组, 'fastk': fastk数组}
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -385,7 +385,7 @@ class INDICATORS:
         :param kline:回测时传入指定k线数据
         :return:返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -410,7 +410,7 @@ class INDICATORS:
         :return:返回一个一维数组
         """
         nbdev= 1 or nbdev
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -432,7 +432,7 @@ class INDICATORS:
         :param kline:回测时传入指定k线数据
         :return:返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
@@ -452,7 +452,7 @@ class INDICATORS:
         :param kline: 回测时传入指定k线数据
         :return: 返回一个一维数组
         """
-        if config.backtest is True:
+        if kline:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)

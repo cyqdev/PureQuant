@@ -80,10 +80,9 @@ def __twilio(message):
 
 def push(message):
     """集成推送工具，配置模块中选择具体的推送渠道"""
-    if config.backtest is False:    # 仅实盘模式时推送信息
-        if config.sendmail:
-            __sendmail(message)
-        if config.dingtalk:
-            __dingtalk(message)
-        if config.twilio:
-            __twilio(message)
+    if config.sendmail:
+        __sendmail(message)
+    if config.dingtalk:
+        __dingtalk(message)
+    if config.twilio:
+        __twilio(message)
