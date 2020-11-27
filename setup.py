@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name="purequant",
-    version="1.6.8",
+    version="1.6.9",
     packages=[
         "purequant",
         "purequant/exchange/huobi",
@@ -47,6 +47,7 @@ setup(
         "colorlog>=4.2.1",
         "ccxt>=1.35.92",
         "websocket>=0.2.1",
-        "pandas>=1.1.4"
+        "pandas>=1.1.4",
+        "matplotlib>=3.3.3"
     ]
 )
