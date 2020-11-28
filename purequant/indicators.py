@@ -71,7 +71,6 @@ class INDICATORS:
         """
         if kline:
             records = kline
-            kline_length = len(records)
             current_timestamp = records[-1][0]
             if current_timestamp != self.__last_time_stamp:  # 如果当前时间戳不等于lastTime，说明k线更新
                 self.__last_time_stamp = current_timestamp
@@ -80,7 +79,6 @@ class INDICATORS:
                 return False
         else:
             records = self.__platform.get_kline(self.__time_frame)
-            kline_length = len(records)
             if type(records[0][0]) == str:
                 current_timestamp = utctime_str_to_ts(records[0][0])
             else:
