@@ -72,7 +72,7 @@ class INDICATORS:
         if kline:
             records = kline
             kline_length = len(records)
-            current_timestamp = records[kline_length - 1][0]
+            current_timestamp = records[-1][0]
             if current_timestamp != self.__last_time_stamp:  # 如果当前时间戳不等于lastTime，说明k线更新
                 self.__last_time_stamp = current_timestamp
                 return True
@@ -82,9 +82,9 @@ class INDICATORS:
             records = self.__platform.get_kline(self.__time_frame)
             kline_length = len(records)
             if type(records[0][0]) == str:
-                current_timestamp = utctime_str_to_ts(records[kline_length - 1][0])
+                current_timestamp = utctime_str_to_ts(records[0][0])
             else:
-                current_timestamp = records[kline_length - 1][0]
+                current_timestamp = records[0][0]
             if current_timestamp != self.__last_time_stamp:  # 如果当前时间戳不等于lastTime，说明k线更新
                 if current_timestamp < self.__last_time_stamp:
                     return
@@ -456,8 +456,8 @@ class INDICATORS:
             records = kline
         else:
             records = self.__platform.get_kline(self.__time_frame)
+            records.reverse()
         length = len(records)
-        records.reverse()
         t = 0
         volume_array = np.zeros(length)
         for item in records:
