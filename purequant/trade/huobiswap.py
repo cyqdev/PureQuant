@@ -76,7 +76,7 @@ class HUOBISWAP:
         except:
             raise SendOrderError(result['err_msg'])
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "准备提交" or order_info["订单状态"] == "已提交":
@@ -89,7 +89,7 @@ class HUOBISWAP:
                 except: # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                     try:
@@ -100,7 +100,7 @@ class HUOBISWAP:
                     except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                         order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])
@@ -113,7 +113,7 @@ class HUOBISWAP:
                 except: # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['data']['order_id_str'])
@@ -123,19 +123,19 @@ class HUOBISWAP:
                 except: # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['data']['order_id_str'])
                 state = self.get_order_info(order_id=result['data']['order_id_str'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                 order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def sell(self, price, size, order_type=None, lever_rate=None):
         """
@@ -170,7 +170,7 @@ class HUOBISWAP:
         except:
             raise SendOrderError(result['err_msg'])
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "准备提交" or order_info["订单状态"] == "已提交":
@@ -183,7 +183,7 @@ class HUOBISWAP:
                     except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                         order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                     try:
@@ -194,7 +194,7 @@ class HUOBISWAP:
                     except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                         order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])
@@ -207,7 +207,7 @@ class HUOBISWAP:
                 except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['data']['order_id_str'])
@@ -217,19 +217,19 @@ class HUOBISWAP:
                 except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['data']['order_id_str'])
                 state = self.get_order_info(order_id=result['data']['order_id_str'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                 order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def buytocover(self, price, size, order_type=None, lever_rate=None):
         """
@@ -264,7 +264,7 @@ class HUOBISWAP:
         except:
             raise SendOrderError(result['err_msg'])
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "准备提交" or order_info["订单状态"] == "已提交":
@@ -277,7 +277,7 @@ class HUOBISWAP:
                     except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                         order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                     try:
@@ -288,7 +288,7 @@ class HUOBISWAP:
                     except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                         order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])
@@ -301,7 +301,7 @@ class HUOBISWAP:
                 except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['data']['order_id_str'])
@@ -311,19 +311,19 @@ class HUOBISWAP:
                 except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['data']['order_id_str'])
                 state = self.get_order_info(order_id=result['data']['order_id_str'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                 order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def sellshort(self, price, size, order_type=None, lever_rate=None):
         """
@@ -358,7 +358,7 @@ class HUOBISWAP:
         except:
             raise SendOrderError(result['err_msg'])
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "准备提交" or order_info["订单状态"] == "已提交":
@@ -371,7 +371,7 @@ class HUOBISWAP:
                     except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                         order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                     try:
@@ -382,7 +382,7 @@ class HUOBISWAP:
                     except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                         order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['data']['order_id_str'])
@@ -395,7 +395,7 @@ class HUOBISWAP:
                 except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['data']['order_id_str'])
@@ -405,19 +405,19 @@ class HUOBISWAP:
                 except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                     order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['data']['order_id_str'])
                 state = self.get_order_info(order_id=result['data']['order_id_str'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:  # 如果撤单失败，就再查询一次订单状态然后返回结果
                 order_info = self.get_order_info(order_id=result['data']['order_id_str'])  # 下单后查询一次订单状态
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def BUY(self, cover_short_price, cover_short_size, open_long_price, open_long_size, order_type=None):
         """火币交割合约平空开多"""
@@ -442,9 +442,9 @@ class HUOBISWAP:
     def revoke_order(self, order_id):
         receipt = self.__huobi_swap.cancel_contract_order(self.__instrument_id, order_id)
         if receipt['status'] == "ok":
-            return '【交易提醒】交易所: Huobi 撤单成功'
+            return True
         else:
-            return '【交易提醒】交易所: Huobi 撤单失败' + receipt['data']['errors'][0]['err_msg']
+            return False
 
     def get_order_info(self, order_id):
         result = self.__huobi_swap.get_contract_order_info(self.__instrument_id, order_id)
@@ -465,31 +465,31 @@ class HUOBISWAP:
             action = "交易方向错误！"
         if state == 6:
             dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "完全成交",
-                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover}
+                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover, "order_id": order_id}
             return dict
         elif state == 1:
-            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "准备提交"}
+            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "准备提交", "order_id": order_id}
             return dict
         elif state == 7:
             dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单成功",
-                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover}
+                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover, "order_id": order_id}
             return dict
         elif state == 2:
-            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "准备提交"}
+            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "准备提交", "order_id": order_id}
             return dict
         elif state == 4:
             dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "部分成交",
-                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover}
+                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover, "order_id": order_id}
             return dict
         elif state == 3:
-            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "已提交"}
+            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "已提交", "order_id": order_id}
             return dict
         elif state == 11:
-            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单中"}
+            dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "撤单中", "order_id": order_id}
             return dict
         elif state == 5:
             dict = {"交易所": "Huobi永续合约", "合约ID": instrument_id, "方向": action, "订单状态": "部分成交撤销",
-                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover}
+                    "成交均价": avg_price, "已成交数量": amount, "成交金额": turnover, "order_id": order_id}
             return dict
 
     def get_kline(self, time_frame):

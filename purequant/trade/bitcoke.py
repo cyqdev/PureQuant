@@ -131,9 +131,9 @@ class BITCOKE:
     def revoke_order(self, order_id):
         receipt = self.__bitcoke.cancel_order(order_id)
         if receipt['message'] == "OK":
-            return '【交易提醒】撤单成功'
+            return True
         else:
-            return '【交易提醒】撤单失败'
+            return False
 
     def get_order_info(self, order_id):
         result = self.__bitcoke.get_order_info(order_id)
@@ -151,28 +151,31 @@ class BITCOKE:
             dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "完全成交",
                     "成交均价": result['result']['avgPx'],
                     "已成交数量": int(result['result']['cumQty']),
-                    "成交金额": result["result"]['cumQty']}
+                    "成交金额": result["result"]['cumQty'],
+                    "order_id": order_id}
             return dict
         elif result['result']['ordStatus'] == "REJECTED":
-            dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "失败"}
+            dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "失败", "order_id": order_id}
             return dict
         elif result['result']['ordStatus'] == "CANCELED":
             dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "撤单成功",
                     "成交均价": result['result']['avgPx'],
                     "已成交数量": int(result['result']['cumQty']),
-                    "成交金额": result["result"]['cumQty']}
+                    "成交金额": result["result"]['cumQty'],
+                    "order_id": order_id}
             return dict
         elif result['result']['ordStatus'] == "NEW":
-            dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "等待成交"}
+            dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "等待成交", "order_id": order_id}
             return dict
         elif result['result']['ordStatus'] == "PARTIALLY_FILLED":
             dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "部分成交",
                     "成交均价": result['result']['avgPx'],
                     "已成交数量": int(result['result']['cumQty']),
-                    "成交金额": result["result"]['cumQty']}
+                    "成交金额": result["result"]['cumQty'],
+                    "order_id": order_id}
             return dict
         elif result['result']['ordStatus'] == "WAITING ":
-            dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "等待（条件单）"}
+            dict = {"交易所": "BITCOKE", "币对": self.__symbol, "方向": action, "订单状态": "等待（条件单）", "order_id": order_id}
             return dict
 
     def buy(self, price, size, order_type=None, stopLossPrice=None, trailingStop=None, stopWinPrice=None,
@@ -198,7 +201,7 @@ class BITCOKE:
             raise SendOrderError(result["message"])
         order_info = self.get_order_info(order_id=result['result'])  # 下单后查询一次订单状态
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "等待成交":
@@ -212,7 +215,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                     try:
@@ -224,7 +227,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['result'])
@@ -238,7 +241,7 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['result'])
@@ -249,19 +252,19 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['result'])
                 state = self.get_order_info(order_id=result['result'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:
                 order_info = self.get_order_info(order_id=result['result'])
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def buytocover(self, price, size, order_type=None, stopLossPrice=None, trailingStop=None, stopWinPrice=None,
             stopWinType=None, triggerPrice=None, triggerType=None, tif=None):
@@ -286,7 +289,7 @@ class BITCOKE:
             raise SendOrderError(result["message"])
         order_info = self.get_order_info(order_id=result['result'])  # 下单后查询一次订单状态
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "等待成交":
@@ -300,7 +303,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                     try:
@@ -312,7 +315,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['result'])
@@ -326,7 +329,7 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['result'])
@@ -337,19 +340,19 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['result'])
                 state = self.get_order_info(order_id=result['result'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:
                 order_info = self.get_order_info(order_id=result['result'])
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def sell(self, price, size, order_type=None, stopLossPrice=None, trailingStop=None, stopWinPrice=None,
             stopWinType=None, triggerPrice=None, triggerType=None, tif=None):
@@ -374,7 +377,7 @@ class BITCOKE:
             raise SendOrderError(result["message"])
         order_info = self.get_order_info(order_id=result['result'])  # 下单后查询一次订单状态
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "等待成交":
@@ -388,7 +391,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                     try:
@@ -400,7 +403,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['result'])
@@ -414,7 +417,7 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['result'])
@@ -425,19 +428,19 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['result'])
                 state = self.get_order_info(order_id=result['result'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:
                 order_info = self.get_order_info(order_id=result['result'])
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def sellshort(self, price, size, order_type=None, stopLossPrice=None, trailingStop=None, stopWinPrice=None,
             stopWinType=None, triggerPrice=None, triggerType=None, tif=None):
@@ -462,7 +465,7 @@ class BITCOKE:
             raise SendOrderError(result["message"])
         order_info = self.get_order_info(order_id=result['result'])  # 下单后查询一次订单状态
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
         # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "等待成交":
@@ -476,7 +479,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":
                 if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                     try:
@@ -488,7 +491,7 @@ class BITCOKE:
                     except:
                         order_info = self.get_order_info(order_id=result['result'])
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['result'])
@@ -502,7 +505,7 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":
                 try:
                     self.revoke_order(order_id=result['result'])
@@ -513,19 +516,19 @@ class BITCOKE:
                 except:
                     order_info = self.get_order_info(order_id=result['result'])
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['result'])
                 state = self.get_order_info(order_id=result['result'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:
                 order_info = self.get_order_info(order_id=result['result'])
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def BUY(self, cover_short_price, cover_short_size, open_long_price, open_long_size, order_type=None):
         result1 = self.buytocover(cover_short_price, cover_short_size, order_type)

@@ -30,9 +30,9 @@ class MXC:
         """撤销指定订单"""
         receipt = self.__mxc.cancel_order(self.__symbol, order_id)
         if receipt['msg'] == "OK":
-            return '【交易提醒】撤单成功'
+            return True
         else:
-            return '【交易提醒】撤单失败' + receipt['msg']
+            return False
 
     def get_order_info(self, order_id):
         result = self.__mxc.get_order_info(self.__symbol, order_id)
@@ -46,25 +46,28 @@ class MXC:
             dict = {"交易所": "MXC", "交易对": result['data']['market'], "方向": action, "订单状态": "完全成交",
                     "成交均价": float(result['data']['price']),
                     "已成交数量": float(result['data']['tradedQuantity']),
-                    "成交金额": float(result['data']['tradedAmount'])}
+                    "成交金额": float(result['data']['tradedAmount']),
+                    "order_id": order_id}
             return dict
         elif int(result['data']['status']) == 4:
             dict = {"交易所": "MXC", "交易对": result['data']['market'], "方向": action, "订单状态": "撤单成功",
                     "成交均价": float(result['data']['price']),
                     "已成交数量": float(result['data']['tradedQuantity']),
-                    "成交金额": float(result['data']['tradedAmount'])}
+                    "成交金额": float(result['data']['tradedAmount']),
+                    "order_id": order_id}
             return dict
         elif int(result['data']['status']) == 1:
-            dict = {"交易所": "MXC", "交易对": result['data']['market'], "方向": action, "订单状态": "等待成交"}
+            dict = {"交易所": "MXC", "交易对": result['data']['market'], "方向": action, "订单状态": "等待成交", "order_id": order_id}
             return dict
         elif int(result['data']['status']) == 3:
             dict = {"交易所": "MXC", "交易对": result['data']['market'], "方向": action, "订单状态": "部分成交",
                     "成交均价": float(result['data']['price']),
                     "已成交数量": float(result['data']['tradedQuantity']),
-                    "成交金额": float(result['data']['tradedAmount'])}
+                    "成交金额": float(result['data']['tradedAmount']),
+                    "order_id": order_id}
             return dict
         elif int(result['data']['status']) == 5:
-            dict = {"交易所": "MXC", "交易对": result['data']['market'], "方向": action, "订单状态": "部分撤单"}
+            dict = {"交易所": "MXC", "交易对": result['data']['market'], "方向": action, "订单状态": "部分撤单", "order_id": order_id}
             return dict
 
     def get_kline(self, time_frame):
@@ -120,7 +123,7 @@ class MXC:
         except:
             raise SendOrderError(result['msg'])
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
             # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "等待成交":
@@ -134,7 +137,7 @@ class MXC:
                     except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                         order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":  # 部分成交时撤单然后重发委托，下单数量为原下单数量减去已成交数量
                 if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                     try:
@@ -146,7 +149,7 @@ class MXC:
                     except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                         order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['data'])
@@ -160,7 +163,7 @@ class MXC:
                 except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                     order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":  # 部分成交时撤单然后重发委托，下单数量为原下单数量减去已成交数量
                 if float(self.get_ticker()['last']) >= price * (1 + config.price_cancellation_amplitude):
                     try:
@@ -172,19 +175,19 @@ class MXC:
                     except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                         order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['data'])
                 state = self.get_order_info(order_id=result['data'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                 order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
     def sell(self, price, size):
         result = self.__mxc.create_order(symbol=self.__symbol, price=price, quantity=size, trade_type=2)
@@ -193,7 +196,7 @@ class MXC:
         except:
             raise SendOrderError(result['msg'])
         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
             # 如果订单状态不是"完全成交"或者"失败"
         if config.price_cancellation:  # 选择了价格撤单时，如果最新价超过委托价一定幅度，撤单重发，返回下单结果
             if order_info["订单状态"] == "等待成交":
@@ -207,7 +210,7 @@ class MXC:
                     except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                         order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
             if order_info["订单状态"] == "部分成交":  # 部分成交时撤单然后重发委托，下单数量为原下单数量减去已成交数量
                 if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                     try:
@@ -219,7 +222,7 @@ class MXC:
                     except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                         order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.time_cancellation:  # 选择了时间撤单时，如果委托单发出多少秒后不成交，撤单重发，直至完全成交，返回成交结果
             time.sleep(config.time_cancellation_seconds)
             order_info = self.get_order_info(order_id=result['data'])
@@ -233,7 +236,7 @@ class MXC:
                 except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                     order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                     if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                        return {"【交易提醒】下单结果": order_info}
+                        return order_info
             if order_info["订单状态"] == "部分成交":  # 部分成交时撤单然后重发委托，下单数量为原下单数量减去已成交数量
                 if float(self.get_ticker()['last']) <= price * (1 - config.price_cancellation_amplitude):
                     try:
@@ -245,19 +248,19 @@ class MXC:
                     except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                         order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                         if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                            return {"【交易提醒】下单结果": order_info}
+                            return order_info
         if config.automatic_cancellation:
             # 如果订单未完全成交，且未设置价格撤单和时间撤单，且设置了自动撤单，就自动撤单并返回下单结果与撤单结果
             try:
                 self.revoke_order(order_id=result['data'])
                 state = self.get_order_info(order_id=result['data'])
-                return {"【交易提醒】下单结果": state}
+                return state
             except:  # 如撤单失败，则说明已经完全成交，此时再查询一次订单状态然后返回下单结果
                 order_info = self.get_order_info(order_id=result['data'])  # 下单后查询一次订单状态
                 if order_info["订单状态"] == "完全成交" or order_info["订单状态"] == "失败 ":  # 如果订单状态为"完全成交"或者"失败"，返回结果
-                    return {"【交易提醒】下单结果": order_info}
+                    return order_info
         else:  # 未启用交易助手时，下单并查询订单状态后直接返回下单结果
-            return {"【交易提醒】下单结果": order_info}
+            return order_info
 
 
 
